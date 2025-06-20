@@ -103,7 +103,7 @@ const deleteSurvey = (survey) => {
       ElMessage.success('问卷已删除 ✅')
     } catch (err) {
       console.error('❌ 删除失败:', err)
-      ElMessage.error('删除失败，请稍后再试')
+      ElMessage.error('删除已失败，请稍后重试')
     }
   })
 }
