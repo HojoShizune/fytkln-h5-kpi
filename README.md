@@ -9,7 +9,7 @@
 - [Vue 3](https://vuejs.org/)
 - [Vite](https://vitejs.dev/)
 - [Element Plus](https://element-plus.org/)
-- [Pinia](https://pinia.vuejs.org/)（如使用）
+- [Pinia](https://pinia.vuejs.org/)
 - [Vue Router](https://router.vuejs.org/)
 - [vuedraggable](https://github.com/SortableJS/vue.draggable.next)
 
