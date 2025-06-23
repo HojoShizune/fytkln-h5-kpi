@@ -14,14 +14,26 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-const router = useRouter()
+import { getSurveyList } from '../api/survey'
 
-const surveyList = [
-  { id: 'gwy2025', title: '2025 年工会工作满意度调查问卷', createdAt: '2025-06-01' },
-  { id: 'culture', title: '企业文化满意度调研', createdAt: '2025-06-15' },
-  { id: 'wellness', title: '职工关怀计划反馈', createdAt: '2025-06-20' }
-]
+const router = useRouter()
+const surveyList = ref([])
+
+const loadSurveys = async () => {
+  try {
+    const res = await getSurveyList()
+    surveyList.value = res.data || []
+    sessionStorage.setItem('surveyList', JSON.stringify(surveyList.value))
+  } catch (err) {
+    console.error('❌ 加载问卷失败:', err)
+  }
+}
+
+onMounted(() => {
+  loadSurveys()
+})
 
 const goTo = (id) => {
   router.push(`/survey/${id}`)

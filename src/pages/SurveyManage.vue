@@ -8,7 +8,7 @@
         clearable
         style="width: 240px"
       />
-      <el-button type="primary" @click="goCreateSurvey">+ 新建问卷</el-button>
+      <el-button type="primary" @click="showCreateDialog = true">+ 新建问卷</el-button>
     </div>
 
     <!-- 问卷表格 -->
@@ -35,6 +35,11 @@
       style="margin-top: 16px; text-align: right"
     />
   </el-card>
+
+  <CreateSurveyDialog
+    v-model="showCreateDialog"
+    @created="loadSurveys"
+  />
 </template>
 
 <script setup>
@@ -43,7 +48,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { getSurveyList } from '../api/survey'
 import { deleteSurvey as deleteSurveyApi } from '../api/survey'
+import CreateSurveyDialog from '../components/CreateSurveyDialog.vue'
 
+const showCreateDialog = ref(false)
 const router = useRouter()
 const surveyList = ref([])
 const searchText = ref('')
@@ -56,11 +63,14 @@ const loadSurveys = async () => {
     const res = await getSurveyList()
     console.log('✅ 后端返回数据:', res.data)
     surveyList.value = res.data || []
+    // ✅ 保存列表到 sessionStorage，用于编辑页自动填充标题等
+    sessionStorage.setItem('surveyList', JSON.stringify(res.data))
   } catch (err) {
     ElMessage.error('加载问卷失败')
     console.error('❌ 获取问卷失败:', err)
   }
 }
+
 
 onMounted(() => {
   loadSurveys()
