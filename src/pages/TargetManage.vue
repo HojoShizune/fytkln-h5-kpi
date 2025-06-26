@@ -1,0 +1,312 @@
+<template>
+  <div>
+    <!-- 新增按钮 -->
+    <el-button type="primary" @click="openAddDialog">新增考核项</el-button>
+
+    <!-- 数据表格 -->
+    <el-table :data="targetList" border style="margin-top: 20px" v-loading="loading">
+      <!-- 考核项名称列 -->
+      <el-table-column
+        prop="target"
+        label="考核项名称"
+        sortable
+        :filters="targetFilters"
+        :filter-method="filterHandler"
+        filter-multiple="false"
+      />
+      <!-- 分值列 -->
+      <el-table-column
+        prop="score"
+        label="分值"
+        width="80"
+        sortable
+        :filters="scoreFilters"
+        :filter-method="filterHandler"
+        filter-multiple="false"
+      />
+      <!-- 浮动分值列 -->
+      <el-table-column
+        prop="floating"
+        label="浮动分值"
+        width="100"
+        sortable
+        :filters="floatingFilters"
+        :filter-method="filterHandler"
+        filter-multiple="false"
+      />
+      <!-- 所属部门列 -->
+      <el-table-column
+        prop="deptName"
+        label="所属部门"
+        sortable
+        :filters="deptFilters"
+        :filter-method="filterHandler"
+        filter-multiple="false"
+      />
+      <!-- 计算公式列，不参与筛选排序 -->
+      <el-table-column label="计算公式">
+        <template #default="{ row }">
+          <el-tooltip effect="dark" placement="top" :content="row.description">
+            <span>
+              {{
+                (row.description || '').length > 20
+                  ? row.description.slice(0, 20) + '...'
+                  : (row.description || '')
+              }}
+            </span>
+          </el-tooltip>
+        </template>
+      </el-table-column>
+      <!-- 评分标准列，不参与筛选排序 -->
+      <el-table-column label="评分标准">
+        <template #default="{ row }">
+          <el-tooltip effect="dark" placement="top" :content="row.scoringMethod">
+            <span>
+              {{
+                (row.scoringMethod || '').length > 20
+                  ? row.scoringMethod.slice(0, 20) + '...'
+                  : (row.scoringMethod || '')
+              }}
+            </span>
+          </el-tooltip>
+        </template>
+      </el-table-column>
+      <!-- 操作列 -->
+      <el-table-column label="操作" width="150">
+        <template #default="{ row }">
+          <el-button type="text" size="small" @click="editTarget(row)">编辑</el-button>
+          <el-button type="text" size="small" @click="deleteTargetById(row)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <!-- 分页控件 -->
+    <el-pagination
+      background
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total"
+      :page-size="pageSize"
+      :current-page="currentPage"
+      @current-change="handlePageChange"
+      @size-change="handleSizeChange"
+      style="margin-top: 20px; text-align: right;"
+    ></el-pagination>
+
+    <!-- 新增/编辑 弹窗 -->
+    <el-dialog :title="isEdit ? '编辑考核项' : '新增考核项'" v-model="dialogVisible" width="500px">
+      <el-form :model="form" label-width="100px">
+        <el-form-item label="考核项名称">
+          <el-input v-model="form.target" placeholder="请输入考核项名称" />
+        </el-form-item>
+
+        <el-form-item label="分值">
+          <el-input-number v-model="form.score" :min="0" />
+        </el-form-item>
+
+        <el-form-item label="浮动分值">
+          <!-- 允许负数输入，例如 -5 -->
+          <el-input-number v-model="form.floating" :min="-9999" />
+        </el-form-item>
+
+        <el-form-item label="计算公式">
+          <el-input v-model="form.description" type="textarea" placeholder="请输入计算公式" />
+        </el-form-item>
+
+        <el-form-item label="评分标准">
+          <el-input v-model="form.scoringMethod" type="textarea" placeholder="请输入评分标准" />
+        </el-form-item>
+
+        <el-form-item label="所属部门">
+          <el-select v-model="form.deptId" placeholder="请选择所属部门">
+            <el-option
+              v-for="dept in deptList"
+              :key="dept.deptId"
+              :label="dept.deptName"
+              :value="dept.deptId"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="onSubmit">确定</el-button>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getTargetList, addTarget, updateTarget, deleteTarget } from '../api/target'
+import { getDeptList } from '../api/dept'
+
+// 分页状态
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
+// 数据和加载状态
+const loading = ref(false)
+const targetList = ref([])
+
+// 部门列表（下拉菜单数据）
+const deptList = ref([])
+
+// 表单数据和弹窗状态
+const form = ref({
+  id: null,
+  target: '',
+  score: 0,
+  floating: 0,
+  description: '',
+  scoringMethod: '',
+  deptId: null
+})
+const originalForm = ref(null)
+const isEdit = ref(false)
+const dialogVisible = ref(false)
+
+// 获取考核项列表，传入分页参数和 searchStr
+const fetchTargets = async () => {
+  loading.value = true
+  try {
+    const params = {
+      searchStr: '',
+      pageNum: currentPage.value,
+      pageSize: pageSize.value
+    }
+    const res = await getTargetList(params)
+    targetList.value = res.data.items || []
+    total.value = res.data.total || 0
+  } catch (err) {
+    console.error('❌ 获取考核项数据失败:', err)
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 分页切换
+const handlePageChange = (page) => {
+  currentPage.value = page
+  fetchTargets()
+}
+const handleSizeChange = (newSize) => {
+  pageSize.value = newSize
+  currentPage.value = 1
+  fetchTargets()
+}
+
+// 获取部门列表，用于下拉选择
+const fetchDepts = async () => {
+  try {
+    const res = await getDeptList()
+    // 假设返回部门数组在 res.data 中
+    deptList.value = res.data
+  } catch (err) {
+    console.error('❌ 获取部门数据失败:', err)
+  }
+}
+
+// 新增弹窗
+const openAddDialog = () => {
+  isEdit.value = false
+  form.value = {
+    id: null,
+    target: '',
+    score: 0,
+    floating: 0,
+    description: '',
+    scoringMethod: '',
+    deptId: null
+  }
+  dialogVisible.value = true
+}
+
+// 编辑弹窗，回填数据
+const editTarget = (row) => {
+  isEdit.value = true
+  form.value = { ...row }
+  originalForm.value = JSON.parse(JSON.stringify(row))
+  dialogVisible.value = true
+}
+
+// 提交新增或更新操作
+const onSubmit = async () => {
+  if (!form.value.target || !form.value.target.trim()) {
+    ElMessage.warning('考核项名称不能为空')
+    return
+  }
+  if (isEdit.value && JSON.stringify(form.value) === JSON.stringify(originalForm.value)) {
+    dialogVisible.value = false
+    ElMessage.info('没有任何修改，已关闭弹窗')
+    return
+  }
+  const payload = {
+    target: form.value.target,
+    score: form.value.score,
+    floating: form.value.floating,
+    description: form.value.description,
+    scoringMethod: form.value.scoringMethod,
+    deptId: form.value.deptId
+  }
+  try {
+    if (isEdit.value) {
+      await updateTarget({ id: form.value.id, ...payload })
+      ElMessage.success('更新成功')
+    } else {
+      await addTarget(payload)
+      ElMessage.success('新增成功')
+    }
+    dialogVisible.value = false
+    fetchTargets()
+  } catch (err) {
+    console.error('❌ 操作失败:', err)
+    ElMessage.error('操作失败，请稍后再试')
+  }
+}
+
+// 删除考核项
+const deleteTargetById = async (row) => {
+  try {
+    await ElMessageBox.confirm(`确认删除考核项【${row.target}】吗？`, '警告', { type: 'warning' })
+    await deleteTarget(row.id)
+    ElMessage.success('删除成功')
+    fetchTargets()
+  } catch (err) {
+    console.error('❌ 删除失败:', err)
+    ElMessage.error('删除失败，请稍后再试')
+  }
+}
+
+// 统一的筛选处理函数，对比 row 中对应属性与选项数值是否完全相等
+const filterHandler = (value, row, column) => {
+  const property = column.property
+  if (!value || !property) return true
+  return String(row[property]) === String(value)
+}
+
+// 下拉筛选数据（基于当前列表数据统计唯一值）
+const targetFilters = computed(() => {
+  const values = Array.from(new Set(targetList.value.map(item => item.target).filter(v => v != null)))
+  return values.map(val => ({ text: val, value: val }))
+})
+const scoreFilters = computed(() => {
+  const values = Array.from(new Set(targetList.value.map(item => item.score)))
+  return values.map(val => ({ text: String(val), value: val }))
+})
+const floatingFilters = computed(() => {
+  const values = Array.from(new Set(targetList.value.map(item => item.floating)))
+  return values.map(val => ({ text: String(val), value: val }))
+})
+const deptFilters = computed(() => {
+  const values = Array.from(new Set(targetList.value.map(item => item.deptName).filter(v => v != null)))
+  return values.map(val => ({ text: val, value: val }))
+})
+
+onMounted(() => {
+  fetchDepts()
+  fetchTargets()
+})
+</script>

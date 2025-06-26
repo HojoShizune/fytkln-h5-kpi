@@ -93,6 +93,11 @@ const routes = [
             path: 'dept',
             component: () => import('../pages/DeptManage.vue'),
             meta: { title: '部门管理', icon: 'OfficeBuilding' }
+          },
+          {
+            path: 'target',
+            component: () => import('../pages/TargetManage.vue'),
+            meta: { title: '考核项管理', icon: 'OfficeBuilding' }
           }
         ]
       }    
