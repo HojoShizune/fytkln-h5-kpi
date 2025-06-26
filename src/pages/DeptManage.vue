@@ -93,18 +93,23 @@ const fetchDepts = async () => {
   }
 }
 
+const refreshAll = async () => {
+  await fetchTargets()
+  await fetchDepts()
+}
+
+
 /* ✅ 表单逻辑来自组合函数 */
 const {
   form,
   isEdit,
   dialogVisible,
-  searchText,
   openAddDialog,
   editDept,
   onSubmit,
   resetForm,
   deleteDeptById
-} = useDeptForm({ onRefresh: fetchDepts })
+} = useDeptForm({ onRefresh: refreshAll })
 
 onMounted(async () => {
   await fetchTargets()

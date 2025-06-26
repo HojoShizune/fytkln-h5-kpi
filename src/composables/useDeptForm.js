@@ -38,10 +38,10 @@ export function useDeptForm({ onRefresh }) {
       ElMessage.warning('请输入部门名称')
       return
     }
-    /*if (!form.value.targets.length) {
+    if (!form.value.targets.length) {
       ElMessage.warning('请至少选择一个考核项')
       return
-    }*/
+    }
 
     const payload = {
       deptName: form.value.deptName,

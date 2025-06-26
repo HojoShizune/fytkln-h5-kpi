@@ -3,6 +3,13 @@
     <!-- 新增按钮 -->
     <el-button type="primary" @click="openAddDialog">新增考核项</el-button>
 
+    <div style="margin-top: 12px; display: flex; align-items: center; color: #999; font-size: 13px;">
+      <el-icon><InfoFilled /></el-icon>
+      <el-text>
+        排序和筛选仅作用于当前分页数据，不支持跨页或全文搜索。
+      </el-text>
+    </div>
+
     <!-- 数据表格 -->
     <el-table :data="targetList" border style="margin-top: 20px" v-loading="loading">
       <!-- 考核项名称列 -->
@@ -23,6 +30,7 @@
         :filters="scoreFilters"
         :filter-method="filterHandler"
         filter-multiple="false"
+        :formatter="(_, __, val) => isFinite(val) ? Number(val).toFixed(2) : '--'"
       />
       <!-- 浮动分值列 -->
       <el-table-column
@@ -33,6 +41,7 @@
         :filters="floatingFilters"
         :filter-method="filterHandler"
         filter-multiple="false"
+        :formatter="(_, __, val) => isFinite(val) ? Number(val).toFixed(2) : '--'"
       />
       <!-- 所属部门列 -->
       <el-table-column
@@ -100,12 +109,12 @@
         </el-form-item>
 
         <el-form-item label="分值">
-          <el-input-number v-model="form.score" :min="0" />
+          <el-input-number v-model="form.score" :min="0" :step="0.1" :precision="2" />
         </el-form-item>
 
         <el-form-item label="浮动分值">
           <!-- 允许负数输入，例如 -5 -->
-          <el-input-number v-model="form.floating" :min="-9999" />
+          <el-input-number v-model="form.floating" :min="-9999" :step="0.1" :precision="2" />
         </el-form-item>
 
         <el-form-item label="计算公式">
@@ -140,6 +149,7 @@ import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getTargetList, addTarget, updateTarget, deleteTarget } from '../api/target'
 import { getDeptList } from '../api/dept'
+import { InfoFilled } from '@element-plus/icons-vue'
 
 // 分页状态
 const currentPage = ref(1)
@@ -238,6 +248,26 @@ const onSubmit = async () => {
     ElMessage.warning('考核项名称不能为空')
     return
   }
+  if (form.value.score === null || form.value.score === undefined || isNaN(form.value.score)) {
+    ElMessage.warning('请填写分值')
+    return
+  }
+  if (form.value.floating === null || form.value.floating === undefined || isNaN(form.value.floating)) {
+    ElMessage.warning('请填写浮动分值')
+    return
+  }
+  if (!form.value.description || !form.value.description.trim()) {
+    ElMessage.warning('请填写计算公式')
+    return
+  }
+  if (!form.value.scoringMethod || !form.value.scoringMethod.trim()) {
+    ElMessage.warning('请填写评分标准')
+    return
+  }
+  if (!form.value.deptId) {
+    ElMessage.warning('请选择所属部门')
+    return
+  }
   if (isEdit.value && JSON.stringify(form.value) === JSON.stringify(originalForm.value)) {
     dialogVisible.value = false
     ElMessage.info('没有任何修改，已关闭弹窗')
@@ -294,11 +324,11 @@ const targetFilters = computed(() => {
 })
 const scoreFilters = computed(() => {
   const values = Array.from(new Set(targetList.value.map(item => item.score)))
-  return values.map(val => ({ text: String(val), value: val }))
+  return values.map(val => ({ text: Number(val).toFixed(2), value: val }))
 })
 const floatingFilters = computed(() => {
   const values = Array.from(new Set(targetList.value.map(item => item.floating)))
-  return values.map(val => ({ text: String(val), value: val }))
+  return values.map(val => ({ text: Number(val).toFixed(2), value: val }))
 })
 const deptFilters = computed(() => {
   const values = Array.from(new Set(targetList.value.map(item => item.deptName).filter(v => v != null)))

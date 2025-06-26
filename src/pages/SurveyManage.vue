@@ -1,6 +1,6 @@
 <template>
   <el-card>
-    <!-- 顶部：搜索框 + 新建按钮 -->
+    <!-- 顶部操作栏 -->
     <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
       <el-input
         v-model="searchText"
@@ -11,11 +11,11 @@
       <el-button type="primary" @click="showCreateDialog = true">+ 新建问卷</el-button>
     </div>
 
-    <!-- 问卷表格 -->
+    <!-- 表格区域 -->
     <el-table :data="paginatedSurveyList" border style="width: 100%">
       <el-table-column prop="title" label="标题" />
-      <el-table-column prop="name" label="创建人" width="120" />
-      <el-table-column prop="createTime" label="创建时间" width="180" />
+      <el-table-column prop="deptName" label="部门名称" width="180" />
+      <el-table-column prop="targetName" label="考核项" width="200" />
       <el-table-column label="操作" width="200">
         <template #default="{ row }">
           <el-button size="small" @click="viewSurvey(row)">查看</el-button>
@@ -25,7 +25,7 @@
       </el-table-column>
     </el-table>
 
-    <!-- 分页 -->
+    <!-- 分页器 -->
     <el-pagination
       background
       layout="prev, pager, next"
@@ -34,36 +34,33 @@
       v-model:current-page="currentPage"
       style="margin-top: 16px; text-align: right"
     />
-  </el-card>
 
-  <CreateSurveyDialog
-    v-model="showCreateDialog"
-    @created="loadSurveys"
-  />
+    <!-- 创建弹窗 -->
+    <CreateSurveyDialog
+      v-model="showCreateDialog"
+      @created="loadSurveys"
+    />
+  </el-card>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { getSurveyList } from '../api/survey'
-import { deleteSurvey as deleteSurveyApi } from '../api/survey'
+import { getSurveyList, deleteSurvey as deleteSurveyApi } from '../api/survey'
 import CreateSurveyDialog from '../components/CreateSurveyDialog.vue'
 
 const showCreateDialog = ref(false)
 const router = useRouter()
 const surveyList = ref([])
 const searchText = ref('')
-
 const currentPage = ref(1)
 const pageSize = 5
 
 const loadSurveys = async () => {
   try {
     const res = await getSurveyList()
-    console.log('✅ 后端返回数据:', res.data)
     surveyList.value = res.data || []
-    // ✅ 保存列表到 sessionStorage，用于编辑页自动填充标题等
     sessionStorage.setItem('surveyList', JSON.stringify(res.data))
   } catch (err) {
     ElMessage.error('加载问卷失败')
@@ -71,30 +68,20 @@ const loadSurveys = async () => {
   }
 }
 
+onMounted(loadSurveys)
 
-onMounted(() => {
-  loadSurveys()
-})
-
-// 模糊搜索过滤
 const filteredSurveyList = computed(() =>
   surveyList.value.filter(item =>
     item.title.toLowerCase().includes(searchText.value.trim().toLowerCase())
   )
 )
 
-// 分页
 const paginatedSurveyList = computed(() => {
   const start = (currentPage.value - 1) * pageSize
   return filteredSurveyList.value.slice(start, start + pageSize)
 })
 
-// 新建问卷跳转
-const goCreateSurvey = () => {
-  router.push('/manage/design')
-}
-
-// 操作按钮
+// 操作区方法
 const viewSurvey = (survey) => {
   ElMessage.info(`查看问卷《${survey.title}》（功能预留）`)
 }
