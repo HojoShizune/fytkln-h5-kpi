@@ -23,6 +23,11 @@ const routes = [
         meta: { title: '首页', icon: 'House' }
       },
       {
+        path: 'test',
+        component: () => import('../pages/Test.vue'),
+        meta: { title: '接口测试', icon: 'House' }
+      },
+      {
         path: 'survey',
         meta: { title: '问卷', icon: 'Document' },
         children: [

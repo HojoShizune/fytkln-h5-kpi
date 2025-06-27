@@ -23,3 +23,7 @@ export const deleteTarget = (id) => {
     params: { id }
   })
 }
+
+export const getTargetsByDept = (params) => {
+  return request.get('/target/findByDept', { params })
+}

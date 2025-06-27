@@ -1,44 +1,77 @@
 <template>
   <el-card>
     <!-- 顶部操作栏 -->
-    <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+    <div class="toolbar">
       <el-input
         v-model="searchText"
         placeholder="输入问卷标题搜索"
         clearable
         style="width: 240px"
       />
-      <el-button type="primary" @click="showCreateDialog = true">+ 新建问卷</el-button>
+      <el-button type="primary" @click="showCreate = true">
+        + 新建问卷
+      </el-button>
     </div>
 
-    <!-- 表格区域 -->
-    <el-table :data="paginatedSurveyList" border style="width: 100%">
+    <!-- 表格 -->
+    <el-table :data="paginatedList" border style="width:100%">
       <el-table-column prop="title" label="标题" />
-      <el-table-column prop="deptName" label="部门名称" width="180" />
+      <el-table-column prop="deptName" label="部门" width="180" />
       <el-table-column prop="targetName" label="考核项" width="200" />
-      <el-table-column label="操作" width="200">
+
+      <el-table-column label="操作" width="260">
         <template #default="{ row }">
-          <el-button size="small" @click="viewSurvey(row)">查看</el-button>
-          <el-button size="small" type="primary" @click="editSurvey(row)">编辑</el-button>
-          <el-button size="small" type="danger" @click="deleteSurvey(row)">删除</el-button>
+          <!-- 新增：点“查看”弹出信息编辑弹窗 -->
+          <el-button
+            size="small"
+            type="info"
+            @click="openInfoDialog(row)"
+          >
+            查看
+          </el-button>
+
+          <!-- 原“编辑”按钮：跳转到设计页 -->
+          <el-button
+            size="small"
+            type="primary"
+            @click="editSurvey(row)"
+          >
+            编辑
+          </el-button>
+
+          <el-button
+            size="small"
+            type="danger"
+            @click="onDelete(row)"
+          >
+            删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <!-- 分页器 -->
+    <!-- 分页 -->
     <el-pagination
       background
       layout="prev, pager, next"
       :page-size="pageSize"
-      :total="filteredSurveyList.length"
+      :total="filteredList.length"
       v-model:current-page="currentPage"
-      style="margin-top: 16px; text-align: right"
+      class="pager"
     />
 
-    <!-- 创建弹窗 -->
+    <!-- 弹窗：新建 -->
     <CreateSurveyDialog
-      v-model="showCreateDialog"
-      @created="loadSurveys"
+      v-model="showCreate"
+      @created="reload"
+    />
+
+    <!-- 弹窗：查看/编辑问卷信息 -->
+    <CreateSurveyDialog
+      v-model="showInfo"
+      :edit-mode="true"
+      :default-data="infoData"
+      @updated="reload"
     />
   </el-card>
 </template>
@@ -47,61 +80,86 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { getSurveyList, deleteSurvey as deleteSurveyApi } from '../api/survey'
+import {
+  getSurveyList,
+  deleteSurvey as apiDelete
+} from '../api/survey'
 import CreateSurveyDialog from '../components/CreateSurveyDialog.vue'
 
-const showCreateDialog = ref(false)
-const router = useRouter()
-const surveyList = ref([])
-const searchText = ref('')
-const currentPage = ref(1)
-const pageSize = 5
+const router     = useRouter()
+const showCreate = ref(false)
+const showInfo   = ref(false)
+const infoData   = ref({})      // 用来回填“查看”弹窗
 
-const loadSurveys = async () => {
+const list       = ref([])
+const searchText = ref('')
+const currentPage= ref(1)
+const pageSize   = 10
+
+// 拉取列表
+const reload = async () => {
   try {
     const res = await getSurveyList()
-    surveyList.value = res.data || []
-    sessionStorage.setItem('surveyList', JSON.stringify(res.data))
-  } catch (err) {
+    list.value = res.data || []
+  } catch {
     ElMessage.error('加载问卷失败')
-    console.error('❌ 获取问卷失败:', err)
   }
 }
+onMounted(reload)
 
-onMounted(loadSurveys)
-
-const filteredSurveyList = computed(() =>
-  surveyList.value.filter(item =>
-    item.title.toLowerCase().includes(searchText.value.trim().toLowerCase())
+// 过滤 & 分页
+const filteredList  = computed(() =>
+  list.value.filter(i =>
+    i.title.toLowerCase().includes(searchText.value.trim().toLowerCase())
   )
 )
-
-const paginatedSurveyList = computed(() => {
+const paginatedList = computed(() => {
   const start = (currentPage.value - 1) * pageSize
-  return filteredSurveyList.value.slice(start, start + pageSize)
+  return filteredList.value.slice(start, start + pageSize)
 })
 
-// 操作区方法
-const viewSurvey = (survey) => {
-  ElMessage.info(`查看问卷《${survey.title}》（功能预留）`)
+// 打开“查看”弹窗（编辑问卷信息）
+const openInfoDialog = (row) => {
+  infoData.value = {
+    id:       row.id,
+    title:    row.title,
+    deptId:   row.deptId,
+    targetId: row.targetId
+  }
+  showInfo.value = true
 }
-const editSurvey = (survey) => {
-  router.push({ path: '/manage/design', query: { id: survey.id } })
+
+// 原来的“编辑”按钮——跳转到设计页
+const editSurvey = (row) => {
+  router.push({ path: '/manage/design', query: { id: row.id } })
 }
-const deleteSurvey = (survey) => {
-  ElMessageBox.confirm(`是否确认删除问卷《${survey.title}》？`, '提示', {
-    confirmButtonText: '删除',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
+
+// 删除
+const onDelete = (row) => {
+  ElMessageBox.confirm(
+    `确认删除《${row.title}》？`,
+    '提示',
+    { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }
+  ).then(async () => {
     try {
-      await deleteSurveyApi(survey.id)
-      surveyList.value = surveyList.value.filter(s => s.id !== survey.id)
-      ElMessage.success('问卷已删除 ✅')
-    } catch (err) {
-      console.error('❌ 删除失败:', err)
-      ElMessage.error('删除已失败，请稍后重试')
+      await apiDelete(row.id)
+      list.value = list.value.filter(i => i.id !== row.id)
+      ElMessage.success('删除成功')
+    } catch {
+      ElMessage.error('删除失败')
     }
   })
 }
 </script>
+
+<style scoped>
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.pager {
+  margin-top: 16px;
+  text-align: right;
+}
+</style>
