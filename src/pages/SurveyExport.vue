@@ -43,6 +43,8 @@ import { ref, reactive, nextTick } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import * as XLSX from 'xlsx'
 import { saveAs } from 'file-saver'
+import { exportSurveyData } from '../api/record'
+import dayjs from 'dayjs'
 
 const tableRef = ref()
 const filters = reactive({ dateRange: [] })
@@ -103,14 +105,17 @@ const handleSelection = (rows) => {
 
 const exportSingle = async () => {
   const survey = selectedSurvey.value
-  const [start, end] = filters.dateRange || []
-  const dateText = start && end
-    ? `\n时间范围：${start} ～ ${end}`
-    : '\n时间范围：全部记录'
+  const [start] = filters.dateRange || []
+
+  if (!survey || !start) {
+    return ElMessageBox.alert('请先选择时间段和问卷再导出', '提示')
+  }
+
+  const period = dayjs(start).format('YYYY-MM') // 格式化账期
 
   try {
     await ElMessageBox.confirm(
-      `确定要导出以下问卷结果吗？\n\n问卷：《${survey.title}》${dateText}`,
+      `确定要导出以下问卷结果？\n\n问卷：《${survey.title}》\n账期：${period}`,
       '确认导出',
       {
         confirmButtonText: '导出',
@@ -124,23 +129,26 @@ const exportSingle = async () => {
 
   loading.value = true
   try {
-    const { questions, results } = fakeResultMap[survey.id] || {}
-
-    const sheetData = results.map(r => {
-      const row = { 用户: r.username, 总分: r.score }
-      questions.forEach((q, i) => {
-        row[q.title] = r.answers?.[i] || '-'
-      })
-      return row
+    const res = await exportSurveyData({
+      data: period,
+      surveyId: survey.id
     })
 
-    const ws = XLSX.utils.json_to_sheet(sheetData)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, survey.title.slice(0, 30))
-    const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
-    saveAs(new Blob([buffer]), `${survey.title}.xlsx`)
+    const base64 = res.data
+    if (!base64) throw new Error('未收到导出文件内容')
+
+    const binary = atob(base64)
+    const array = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) {
+      array[i] = binary.charCodeAt(i)
+    }
+
+    const blob = new Blob([array], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const fileName = `${survey.title}_${period}.xlsx`
+    saveAs(blob, fileName)
   } catch (err) {
-    console.error('导出失败:', err)
+    console.error('❌ 导出失败:', err)
+    ElMessageBox.alert('导出失败，请稍后重试', '错误')
   } finally {
     loading.value = false
   }

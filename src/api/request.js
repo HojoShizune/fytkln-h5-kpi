@@ -1,38 +1,37 @@
-// src/api/request.js
-import axios from 'axios'
+import axios from 'axios'//若上线后可写死正式地址，就注释掉
 import { ElMessage } from 'element-plus'
 
 const service = axios.create({
-  baseURL: import.meta.env.VITE_APP_BASE_API || '/',
+  baseURL: import.meta.env.VITE_APP_BASE_API || '/', // ✅ 开发环境、生产环境都可走代理，记得改.env.production
+  //baseURL: 'https://your-internal-server.com/api', // ✅ 或上线后可写死正式地址，然后删掉config
   timeout: 10000
 })
 
-// ✅ 请求拦截器：自动附加 token
+// ✅ 请求拦截器：附加 token
 service.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token')
     if (token) {
       config.headers['Authorization'] = `${token}`
-      console.log('📦 请求头信息:', config.headers)
     }
 
-    // 设置默认请求头格式（后端是 application/json 时建议加上）
     config.headers['Content-Type'] = config.headers['Content-Type'] || 'application/json'
 
     return config
   },
-  error => {
-    return Promise.reject(error)
-  }
+  error => Promise.reject(error)
 )
 
-// ✅ 响应拦截器：统一处理后端返回
+// ✅ 响应拦截器（可被跳过）
 service.interceptors.response.use(
   response => {
-    const res = response.data
-    console.log('🌍 接收到后端响应:', res)
+    if (response.config.skipResponseInterceptor) {
+      // 🔍 跳过拦截器，直接返回原始响应对象
+      return response
+    }
 
-    // 🔎 判断请求是否成功（你可以根据后端实际返回字段调整）
+    const res = response.data
+
     if (res.code !== 0 && res.success !== true) {
       ElMessage.error(res.message || '请求失败')
       return Promise.reject(new Error(res.message || 'Error'))
@@ -41,8 +40,6 @@ service.interceptors.response.use(
     return res
   },
   error => {
-    // ✅ 错误统一弹窗反馈
-    console.error('❌ 网络请求失败:', error)
     ElMessage.error(error.response?.data?.message || '网络请求异常')
     return Promise.reject(error)
   }

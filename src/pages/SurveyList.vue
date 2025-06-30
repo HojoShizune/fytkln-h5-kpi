@@ -17,9 +17,12 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSurveyList } from '../api/survey'
+import { getUserFilledSurveys } from '../api/record'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const surveyList = ref([])
+const filledSurveyIds = ref([])
 
 const loadSurveys = async () => {
   try {
@@ -31,12 +34,24 @@ const loadSurveys = async () => {
   }
 }
 
-onMounted(() => {
-  loadSurveys()
+onMounted(async () => {
+  await loadSurveys()
+  await loadFilledSurveys()
 })
 
-const goTo = (id) => {
-  router.push(`/survey/${id}`)
+const loadFilledSurveys = async () => {
+  const res = await getUserFilledSurveys()
+  const filled = Array.isArray(res) ? res.filter(r => r.surveyId !== null) : []
+  filledSurveyIds.value = filled.map(r => r.surveyId)
+  console.log('✅ 已填写问卷ID列表:', filledSurveyIds.value)
+}
+
+const goTo = (surveyId) => {
+  if (filledSurveyIds.value.includes(surveyId)) {
+    ElMessage.info('您本月已填写过该问卷')
+    return
+  }
+  router.push(`/survey/${surveyId}`)
 }
 </script>
 

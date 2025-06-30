@@ -24,9 +24,9 @@
         <el-select v-model="form.deptId" placeholder="请选择部门">
           <el-option
             v-for="dept in departments"
-            :key="dept.id"
-            :label="dept.name"
-            :value="dept.id"
+            :key="dept.deptId"
+            :label="dept.deptName"
+            :value="dept.deptId"
           />
         </el-select>
       </el-form-item>
@@ -41,18 +41,13 @@
 
 <script setup>
 import { updateUserInfo } from '../api/user'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { getDeptList } from '../api/dept' 
 
 defineProps({ roles: Array })
 
-
-// 模拟部门选项，可替换为 API 返回数据
-const departments = ref([
-  { id: 1, name: '人事部' },
-  { id: 2, name: '行政部' },
-  { id: 3, name: '技术部' }
-])
+const departments = ref([])
 
 const emit = defineEmits(['updated']) // 👈 声明事件
 
@@ -109,6 +104,11 @@ const saveUser = async () => {
     console.error('更新异常：', error)
   }
 }
+
+onMounted(async () => {
+  const res = await getDeptList()
+  departments.value = res.data || []
+})
 
 defineExpose({ openDialog })
 </script>

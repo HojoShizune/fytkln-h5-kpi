@@ -25,9 +25,12 @@
       </el-form-item>
       <el-form-item prop="deptId" label="部门">
         <el-select v-model="form.deptId" placeholder="选择部门">
-          <el-option label="测试部门1" :value="1" />
-          <el-option label="测试部门2" :value="2" />
-          <el-option label="测试部门3" :value="3" />
+          <el-option
+            v-for="dept in departments"
+            :key="dept.deptId"
+            :label="dept.deptName"
+            :value="dept.deptId"
+          />
         </el-select>
       </el-form-item>
     </el-form>
@@ -43,6 +46,7 @@
 import { ref, onMounted, defineExpose } from 'vue'
 import { ElMessage } from 'element-plus'
 import { registerUser, getRoleList } from '../api/user'
+import { getDeptList } from '../api/dept'
 
 const visible = ref(false)
 const loading = ref(false)
@@ -57,6 +61,8 @@ const form = ref({
   roleId: null,
   deptId: ''
 })
+
+const departments = ref([]) // 👈 新增
 
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
@@ -121,8 +127,9 @@ const onRegister = async () => {
 }
 
 onMounted(async () => {
-  const res = await getRoleList()
-  roles.value = res.data || []
+  const [roleRes, deptRes] = await Promise.all([getRoleList(), getDeptList()])
+  roles.value = roleRes.data || []
+  departments.value = deptRes.data || []
 })
 
 defineExpose({ openDialog })

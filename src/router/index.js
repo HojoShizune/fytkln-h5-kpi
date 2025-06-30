@@ -34,7 +34,7 @@ const routes = [
           {
             path: '',
             component: () => import('../pages/SurveyList.vue'),
-            meta: { title: '填写问卷', icon: 'Edit' }
+            meta: { title: '填写问卷', icon: 'Edit' }//管理员不可访问，记得加权限
           },
           {
             path: ':id',
