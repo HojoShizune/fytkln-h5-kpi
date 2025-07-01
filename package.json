@@ -13,6 +13,7 @@
     "axios": "^1.10.0",
     "element-plus": "^2.10.2",
     "file-saver": "^2.0.5",
+    "html2pdf.js": "^0.10.3",
     "jwt-decode": "^4.0.0",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.3.0",

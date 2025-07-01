@@ -32,10 +32,10 @@
         filter-multiple="false"
         :formatter="(_, __, val) => isFinite(val) ? Number(val).toFixed(2) : '--'"
       />
-      <!-- 浮动分值列 -->
+      <!-- 浮动上限列 -->
       <el-table-column
         prop="floating"
-        label="浮动分值"
+        label="浮动上限"
         width="100"
         sortable
         :filters="floatingFilters"
@@ -46,7 +46,7 @@
       <!-- 所属部门列 -->
       <el-table-column
         prop="deptName"
-        label="所属部门"
+        label="考核部门"
         sortable
         :filters="deptFilters"
         :filter-method="filterHandler"
@@ -112,7 +112,7 @@
           <el-input-number v-model="form.score" :min="0" :step="0.1" :precision="2" />
         </el-form-item>
 
-        <el-form-item label="浮动分值">
+        <el-form-item label="浮动上限">
           <!-- 允许负数输入，例如 -5 -->
           <el-input-number v-model="form.floating" :min="-9999" :step="0.1" :precision="2" />
         </el-form-item>
@@ -253,7 +253,7 @@ const onSubmit = async () => {
     return
   }
   if (form.value.floating === null || form.value.floating === undefined || isNaN(form.value.floating)) {
-    ElMessage.warning('请填写浮动分值')
+    ElMessage.warning('请填写浮动上限')
     return
   }
   if (!form.value.description || !form.value.description.trim()) {

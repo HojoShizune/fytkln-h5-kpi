@@ -11,6 +11,7 @@
       <el-aside width="200px" class="side-menu">
         <el-menu router :default-active="route.path">
           <template v-for="item in menuRoutes" :key="item.fullPath || item.path">
+            <!-- ✅一级菜单 -->
             <el-sub-menu v-if="item.children?.length" :index="item.fullPath || item.path">
               <template #title>
                 <el-icon>
@@ -19,16 +20,33 @@
                 <span>{{ item.meta?.title }}</span>
               </template>
 
-              <el-menu-item
-                v-for="child in item.children"
-                :key="child.fullPath || child.path"
-                :index="child.fullPath || child.path"
-              >
-                <el-icon>
-                  <component :is="iconMap[child.meta?.icon] || DefaultIcon" />
-                </el-icon>
-                <span>{{ child.meta?.title }}</span>
-              </el-menu-item>
+              <!-- ✅递归渲染子菜单 -->
+              <template v-for="child in item.children" :key="child.fullPath || child.path">
+                <el-sub-menu v-if="child.children?.length" :index="child.fullPath || child.path">
+                  <template #title>
+                    <el-icon>
+                      <component :is="iconMap[child.meta?.icon] || DefaultIcon" />
+                    </el-icon>
+                    <span>{{ child.meta?.title }}</span>
+                  </template>
+                  <!-- 继续递归... -->
+                  <template v-for="grand in child.children" :key="grand.fullPath || grand.path">
+                    <el-menu-item :index="grand.fullPath || grand.path">
+                      <el-icon>
+                        <component :is="iconMap[grand.meta?.icon] || DefaultIcon" />
+                      </el-icon>
+                      <span>{{ grand.meta?.title }}</span>
+                    </el-menu-item>
+                  </template>
+                </el-sub-menu>
+
+                <el-menu-item v-else :index="child.fullPath || child.path">
+                  <el-icon>
+                    <component :is="iconMap[child.meta?.icon] || DefaultIcon" />
+                  </el-icon>
+                  <span>{{ child.meta?.title }}</span>
+                </el-menu-item>
+              </template>
             </el-sub-menu>
 
             <el-menu-item v-else :index="item.fullPath || item.path">

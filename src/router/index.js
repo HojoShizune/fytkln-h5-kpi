@@ -1,6 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '../store/user'
 import { ElMessage } from 'element-plus'
+import { h } from 'vue' // 在 router 文件顶部引入
+import QuestionnaireLayout from '../layout/QuestionnaireLayout.vue'
+import ScoringLayout from '../layout/ScoringLayout.vue'
+
 
 
 const routes = [
@@ -16,7 +20,7 @@ const routes = [
   {
     path: '/',
     component: () => import('../layout/HomeLayout.vue'),
-    children: [//HomeLayout的子路由
+    children: [
       {
         path: 'home',
         component: () => import('../pages/Home.vue'),
@@ -34,55 +38,18 @@ const routes = [
           {
             path: '',
             component: () => import('../pages/SurveyList.vue'),
-            meta: { title: '填写问卷', icon: 'Edit' }//管理员不可访问，记得加权限
+            meta: { title: '填写问卷', icon: 'Edit' }
           },
           {
             path: ':id',
             component: () => import('../pages/SurveyDetail.vue'),
             meta: { title: '问卷详情', hidden: true }
           }
-
-        ]
-      },
-      {
-        path: 'manage',
-        meta: {
-          title: '问卷管理',
-          icon: 'PieChart'
-           // 只有 admin 可见可访问  roles: [1]
-        },
-        children: [
-          {
-            path: 'result',
-            component: () => import('../pages/SurveyResult.vue'),
-            meta: {
-              title: '问卷结果查看',
-              icon: 'PieChart'
-            }
-          },
-          {
-            path: 'export',
-            component: () => import('../pages/SurveyExport.vue'),
-            meta: {
-              title: '问卷导出',
-              icon: 'Download'
-            }
-          },
-          {
-            path: 'design',
-            component: () => import('../pages/SurveyDesigner.vue'),
-            meta: { title: '问卷设计', icon: 'EditPen', hidden: true }
-          },// 问卷设计页面: 已整合至组件SurveyEditor.vue；靠该页面调用SurveyEditor组件，需保留
-          {
-            path: 'manage',
-            component: () => import('../pages/SurveyManage.vue'),
-            meta: { title: '问卷管理与设计', icon: 'List' }
-          }
         ]
       },
       {
         path: 'admin',
-        meta: { title: '管理员菜单', icon: 'Setting' }, // 仅管理员可见roles: [1]
+        meta: { title: '管理员菜单', icon: 'Setting' },// 只有 admin 可见可访问  roles: [1]
         children: [
           /*{
             path: 'register',
@@ -103,12 +70,50 @@ const routes = [
             path: 'target',
             component: () => import('../pages/TargetManage.vue'),
             meta: { title: '考核项管理', icon: 'OfficeBuilding' }
+          },
+          {
+            path: 'questionnaire',
+            component: QuestionnaireLayout,
+            meta: { title: '问卷管理', icon: 'PieChart' },
+            children: [
+              {
+                path: 'result',
+                component: () => import('../pages/SurveyResult.vue'),
+                meta: { title: '结果查询与导出', icon: 'PieChart' }
+              },
+              {
+                path: 'design',
+                component: () => import('../pages/SurveyDesigner.vue'),
+                meta: { title: '问卷设计', icon: 'EditPen', hidden: true }
+              },// 问卷设计页面: 已整合至组件SurveyEditor.vue；靠该页面调用SurveyEditor组件，需保留
+              {
+                path: 'manage',
+                component: () => import('../pages/SurveyManage.vue'),
+                meta: { title: '问卷管理与设计', icon: 'List' }
+              }
+            ]
           }
         ]
-      }    
+      },
+      {
+        path: 'scoring',
+        component: ScoringLayout,
+        meta: { title: '打分模块', icon: 'Tools' },
+        children: [
+          {
+            path: 'score-board',
+            component: () => import('../pages/ScoreBoard.vue'),
+            meta: { title: '指标打分', icon: 'PieChart' }
+          },
+          {
+            path: 'summary',
+            component: () => import('../pages/ScoreSummary.vue'),
+            meta: { title: '得分汇总', icon: 'PieChart' }
+          }
+        ]
+      }
     ]
-  },
-  // 可选：404 或登录页等顶层路由
+  }
 ]
 
 const router = createRouter({

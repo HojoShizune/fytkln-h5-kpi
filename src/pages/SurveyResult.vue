@@ -192,10 +192,10 @@ const exportSurvey = async () => {
     console.log('📦 响应类型:', Object.prototype.toString.call(res.data))
     console.log('📏 响应 Blob size (bytes):', res.data.size || '(无 size)')
 
-    // 👉 可选：尝试先用浏览器打开文件验证是否能打开
+    /* 👉 可选：尝试先用浏览器打开文件验证是否能打开
     const debugUrl = window.URL.createObjectURL(res.data)
     console.log('🧪 临时预览链接:', debugUrl)
-    window.open(debugUrl)
+    window.open(debugUrl)*/
 
     const blob = new Blob([res.data], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
