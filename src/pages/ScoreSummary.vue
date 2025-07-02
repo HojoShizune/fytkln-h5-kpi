@@ -17,10 +17,13 @@
               <td>{{ row.originScore }}</td>
               <td>{{ row.coeffient }}</td>
               <td>{{ row.finalScore }}</td>
+
+              <!-- ✅ 数据核查列 -->
               <td>
-                <el-link type="primary" @click="editRemark(row)">
-                  {{ row.remark || '点击填写备注' }}
-                </el-link>
+                <el-checkbox
+                  :model-value="row.isChecked === 1"
+                  @change="val => toggleCheck(row, val)"
+                />
               </td>
             </tr>
           </tbody>
@@ -36,15 +39,6 @@
       </div>
     </div>
 
-    <!-- 备注弹窗 -->
-    <el-dialog v-model="remarkDialog.visible" title="编辑备注" width="420px">
-      <el-input type="textarea" rows="4" v-model="remarkDialog.input" />
-      <template #footer>
-        <el-button @click="remarkDialog.visible = false">取消</el-button>
-        <el-button type="primary" @click="submitRemark">确认</el-button>
-      </template>
-    </el-dialog>
-
     <!-- 导出按钮 -->
     <div class="export-button-bar">
       <el-button type="success" @click="exportDialogVisible = true">
@@ -59,32 +53,34 @@
       width="90%"
       top="4vh"
     >
-      <div ref="printArea" class="print-area">
-        <h2 class="print-title">{{ title }}</h2>
+      <div class="scroll-wrapper">
+        <div ref="printArea" class="print-area">
+          <h2 class="print-title">{{ title }}</h2>
 
-        <table class="print-table">
-          <thead>
-            <tr>
-              <th v-for="col in columnDefs" :key="col.prop">{{ col.label }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in tableData" :key="row.id">
-              <td>{{ row.deptName }}</td>
-              <td>{{ row.originScore }}</td>
-              <td>{{ row.coeffient }}</td>
-              <td>{{ row.finalScore }}</td>
-              <td>{{ row.remark }}</td>
-            </tr>
-          </tbody>
-        </table>
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th v-for="col in columnDefs" :key="col.prop">{{ col.label }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in tableData" :key="row.id">
+                <td>{{ row.deptName }}</td>
+                <td>{{ row.originScore }}</td>
+                <td>{{ row.coeffient }}</td>
+                <td>{{ row.finalScore }}</td>
+                <td>{{ row.isChecked === 1 ? '✅ 已核查' : '❗ 未核查' }}</td>
+              </tr>
+            </tbody>
+          </table>
 
-        <div class="summary-section">
-          <div class="avg-row">平均分：{{ avgScore }}</div>
-          <div class="sign-row">
-            <span>审批人：__________</span>
-            <span>审核人：__________</span>
-            <span>制表人：__________</span>
+          <div class="summary-section">
+            <div class="avg-row">平均分：{{ avgScore }}</div>
+            <div class="sign-row">
+              <span>审批人：____________</span>
+              <span>审核人：____________</span>
+              <span>制表人：____________</span>
+            </div>
           </div>
         </div>
       </div>
@@ -113,7 +109,7 @@ const columnDefs = [
   { prop: 'originScore', label: '起始分值' },
   { prop: 'coeffient', label: '浮动系数' },
   { prop: 'finalScore', label: '最终得分' },
-  { prop: 'remark', label: '备注' }
+  { prop: 'isChecked', label: '数据核查' } // ✅ 替换备注列
 ]
 
 const departments = ['海州分公司', '滨海分公司', '新浦分公司', '连云港本部']
@@ -127,21 +123,12 @@ for (let i = 1; i <= 40; i++) {
     originScore: 100.0,
     coeffient: (Math.random() * 0.4 + 0.8).toFixed(2),
     finalScore: Math.floor(Math.random() * 20 + 80),
-    remark: i % 3 === 0 ? '存在部分指标未完成，酌情扣分' : ''
+    isChecked: i % 2 === 0 ? 1 : 0 // ✅ 初始核查状态
   })
 }
 
-const remarkDialog = ref({ visible: false, targetRow: null, input: '' })
-
-function editRemark(row) {
-  remarkDialog.value.visible = true
-  remarkDialog.value.targetRow = row
-  remarkDialog.value.input = row.remark
-}
-
-function submitRemark() {
-  remarkDialog.value.targetRow.remark = remarkDialog.value.input.trim()
-  remarkDialog.value.visible = false
+function toggleCheck(row, val) {
+  row.isChecked = val ? 1 : 0
 }
 
 const avgScore = computed(() => {
@@ -158,16 +145,17 @@ function handleConfirmExport() {
     html2pdf()
       .set({
         margin: 10,
-        filename: `${dayjs().format('YYYYMM')}绩效考核汇总.pdf`,
+        filename: `${dayjs().format('YYYY年MM月')}部门绩效考核得分汇总表.pdf`,
+        pagebreak: { mode: ['avoid-all'] },
         html2canvas: {
-          scale: 1.0, // ✅ 缩小页面，避免裁切
+          scale: 1.0,
           backgroundColor: '#fff',
           useCORS: true
         },
         jsPDF: {
           unit: 'mm',
           format: 'a4',
-          orientation: 'portrait' // ✅ 纵向页面
+          orientation: 'portrait'
         }
       })
       .from(el)
@@ -250,6 +238,11 @@ function handleConfirmExport() {
   padding: 4px 6px;
 }
 
+.print-table tr,
+.print-table tbody {
+  page-break-inside: avoid; /* ✅ 表格行避免被分页裁切 */
+}
+
 /* 平均分 + 审批栏样式 */
 .summary-section {
   font-size: 14px;
@@ -264,8 +257,14 @@ function handleConfirmExport() {
 .sign-row {
   display: flex;
   justify-content: space-between;
-  padding-top: 4px;
+  padding-top: 15px;
   border-top: 1px dashed #ccc;
+}
+
+/* ✅ 弹窗预览区滚动容器 */
+.scroll-wrapper {
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .export-button-bar {

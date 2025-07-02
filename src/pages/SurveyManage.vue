@@ -131,7 +131,7 @@ const openInfoDialog = (row) => {
 
 // 原来的“编辑”按钮——跳转到设计页
 const editSurvey = (row) => {
-  router.push({ path: '/manage/design', query: { id: row.id } })
+  router.push({ path: '/admin/questionnaire/design', query: { id: row.id } })
 }
 
 // 删除
