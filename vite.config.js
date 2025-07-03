@@ -8,8 +8,8 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        //target: 'http://192.168.1.200:8080',
-        target: 'http://58.241.232.147:8084',
+        target: 'http://192.168.1.200:8080',
+        //target: 'http://58.241.232.147:8084',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/api/, ''),//正式环境去掉
         configure: (proxy) => {
