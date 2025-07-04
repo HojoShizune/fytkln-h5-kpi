@@ -52,3 +52,7 @@ export function deleteUser(id) {
 export function getRoleList() {
   return request.get('/user/role')
 }
+
+export function getRoleByToken() {
+  return request.get('/user/getRole')
+}

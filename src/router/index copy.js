@@ -21,11 +21,16 @@ const routes = [
       {
         path: 'home',
         component: () => import('../pages/Home.vue'),
-        meta: { title: '首页', icon: 'House', hidden: true }
+        meta: { title: '首页', icon: 'House' }
+      },
+      {
+        path: 'test',
+        component: () => import('../pages/Test.vue'),
+        meta: { title: '接口测试', icon: 'House' }
       },
       {
         path: 'survey',
-        meta: { title: '问卷', icon: 'Document', roles: [3]},
+        meta: { title: '问卷', icon: 'Document' },
         children: [
           {
             path: '',
@@ -41,17 +46,17 @@ const routes = [
       },
       {
         path: 'admin',
-        meta: { title: '管理员菜单', icon: 'Setting', roles: [1 , 2]},
+        meta: { title: '管理员菜单', icon: 'Setting' },
         children: [
           {
             path: 'manage',
             component: () => import('../pages/UserManage.vue'),
-            meta: { title: '用户管理', icon: 'UserList', roles: [1] }
+            meta: { title: '用户管理', icon: 'UserList' }
           },
           {
             path: 'dept',
             component: () => import('../pages/DeptManage.vue'),
-            meta: { title: '部门管理', icon: 'OfficeBuilding', roles: [1] }
+            meta: { title: '部门管理', icon: 'OfficeBuilding' }
           },
           {
             path: 'target',
@@ -61,7 +66,7 @@ const routes = [
           {
             path: 'questionnaire',
             component: QuestionnaireLayout,
-            meta: { title: '问卷管理', icon: 'PieChart', roles: [1] },
+            meta: { title: '问卷管理', icon: 'PieChart' },
             children: [
               {
                 path: 'result',
@@ -72,7 +77,7 @@ const routes = [
                 path: 'design',
                 component: () => import('../pages/SurveyDesigner.vue'),
                 meta: { title: '问卷设计', icon: 'EditPen', hidden: true }
-              },// 问卷设计页面: 已整合至组件SurveyEditor.vue；靠该页面调用SurveyEditor组件，需保留
+              },
               {
                 path: 'manage',
                 component: () => import('../pages/SurveyManage.vue'),
@@ -85,7 +90,7 @@ const routes = [
       {
         path: 'scoring',
         component: ScoringLayout,
-        meta: { title: '打分', icon: 'Tools', roles: [1 , 2 , 4] },
+        meta: { title: '打分', icon: 'Tools' },
         children: [
           {
             path: 'score-board',
@@ -104,10 +109,9 @@ const routes = [
             meta: { title: '历史得分汇总', icon: 'PieChart' }
           },
           {
-            path: 'historysummary/:deptId',
-            name: 'ScoreHistorySummary',
+            path: 'historysummary',
             component: () => import('../pages/ScoreHistorySummary.vue'),
-            meta: { title: '历史指标打分', icon: 'PieChart', hidden: true }
+            meta: { title: '历史指标打分', icon: 'PieChart' }
           }
         ]
       }

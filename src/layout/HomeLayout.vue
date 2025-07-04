@@ -1,7 +1,7 @@
 <template>
   <el-container class="layout-container">
     <el-header class="top-bar">
-      <div class="logo">🧭 FYTKLN Survey</div>
+      <div class="logo">🧭 KPI 考核管理系统</div>
       <div class="header-right">
         <UserDropdown /><!--用户信息组件-->
       </div>
@@ -128,10 +128,12 @@ const iconMap = {
   color: white;
   display: flex;
   align-items: center;
+  justify-content: space-between; /* ✅ 推开左右区域 */
   padding: 0 20px;
   font-size: 20px;
   font-weight: bold;
 }
+
 .header-right {
   display: flex;
   align-items: center;

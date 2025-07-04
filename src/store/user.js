@@ -5,7 +5,7 @@ export const useUserStore = defineStore('user', {
   state: () => ({
     token: localStorage.getItem('token') || '',
     username: '',
-    roleId: 0 // ✅ 默认普通用户
+    roleId: '', // ✅ 默认普通用户
   }),
   actions: {
     login({ username, token, roleId }) {

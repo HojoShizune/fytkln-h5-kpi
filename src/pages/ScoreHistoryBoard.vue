@@ -2,33 +2,43 @@
   <div class="score-summary-page">
     <h2 class="page-title">{{ title }}</h2>
 
-    <!-- 页面展示区域 -->
+    <!-- ✅ 账期选择控件 -->
+    <PeriodSelector
+      :period="selectedPeriod"
+      @update:period="handlePeriodChange"
+    />
+
+
+    <!-- ✅ 表格区域 -->
     <div class="preview-table-wrapper">
       <div class="scrollable-table">
-        <table class="preview-table">
-          <thead>
-            <tr>
-              <th v-for="col in columnDefs" :key="col.prop">{{ col.label }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in tableData" :key="row.id">
-              <td>{{ row.deptName }}</td>
-              <td>{{ row.originScore }}</td>
-              <td>{{ row.coeffient }}</td>
-              <td>{{ row.finalScore }}</td>
-
-              <!-- ✅ 数据核查列 -->
-              <td>
-                <el-checkbox
-                  :model-value="row.isChecked === 1"
-                  @change="val => toggleCheck(row, val)"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div v-if="loading" class="loading-tip">⏳ 正在加载打分数据中...</div>
+        <el-skeleton :loading="loading" animated>
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th v-for="col in columnDefs" :key="col.prop">{{ col.label }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in tableData" :key="row.deptId">
+                <td>
+                  <el-link type="primary" @click="goToDeptScore(row.deptId)">
+                    {{ row.deptName }}
+                  </el-link>
+                </td>
+                <td>{{ row.originScore }}</td>
+                <td>{{ row.coeffient }}</td>
+                <td>{{ row.finalScore }}</td>
+                <td>
+                  <el-checkbox :model-value="row.isChecked === 1" disabled />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </el-skeleton>
       </div>
+
       <div class="summary-section">
         <div class="avg-row">平均分：{{ avgScore }}</div>
         <div class="sign-row">
@@ -39,24 +49,17 @@
       </div>
     </div>
 
-    <!-- 导出按钮 -->
+    <!-- ✅ PDF 导出弹窗 -->
     <div class="export-button-bar">
-      <el-button type="success" @click="exportDialogVisible = true">
+      <el-button type="primary" @click="exportDialogVisible = true">
         📄 导出为 PDF
       </el-button>
     </div>
 
-    <!-- 弹窗预览（导出区域） -->
-    <el-dialog
-      v-model="exportDialogVisible"
-      title="导出预览"
-      width="90%"
-      top="4vh"
-    >
+    <el-dialog v-model="exportDialogVisible" title="导出预览" width="90%" top="4vh">
       <div class="scroll-wrapper">
         <div ref="printArea" class="print-area">
           <h2 class="print-title">{{ title }}</h2>
-
           <table class="print-table">
             <thead>
               <tr>
@@ -64,7 +67,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in tableData" :key="row.id">
+              <tr v-for="row in tableData" :key="row.deptId">
                 <td>{{ row.deptName }}</td>
                 <td>{{ row.originScore }}</td>
                 <td>{{ row.coeffient }}</td>
@@ -73,7 +76,6 @@
               </tr>
             </tbody>
           </table>
-
           <div class="summary-section">
             <div class="avg-row">平均分：{{ avgScore }}</div>
             <div class="sign-row">
@@ -84,59 +86,86 @@
           </div>
         </div>
       </div>
-
       <template #footer>
         <el-button @click="exportDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmExport">
-          确认导出 PDF
-        </el-button>
+        <el-button type="primary" @click="handleConfirmExport">确认导出 PDF</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
-import dayjs from 'dayjs'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import html2pdf from 'html2pdf.js'
+import dayjs from 'dayjs'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
-const title = `${dayjs().format('YYYY年MM月')}部门绩效考核得分汇总表`
-const printArea = ref(null)
+import PeriodSelector from '../components/PeriodSelector.vue'
+
+import { fetchHistorySummary } from '../api/score'
+
+const router = useRouter()
+
+// ✅ 页面标题与状态
+const selectedPeriod = ref(dayjs().format('YYYY-MM'))
+const title = ref(`${selectedPeriod.value}部门绩效考核得分汇总表`)
+const tableData = ref([])
+const loading = ref(false)
 const exportDialogVisible = ref(false)
+const printArea = ref(null)
 
+// ✅ 表头定义（与 template 对应）
 const columnDefs = [
   { prop: 'deptName', label: '部门名称' },
   { prop: 'originScore', label: '起始分值' },
   { prop: 'coeffient', label: '浮动系数' },
   { prop: 'finalScore', label: '最终得分' },
-  { prop: 'isChecked', label: '数据核查' } // ✅ 替换备注列
+  { prop: 'isChecked', label: '数据核查' }
 ]
 
-const departments = ['海州分公司', '滨海分公司', '新浦分公司', '连云港本部']
-const tableData = ref([])
+// ✅ 页面加载与账期变更
+onMounted(() => {
+  fetchTableData()
+})
 
-for (let i = 1; i <= 40; i++) {
-  tableData.value.push({
-    id: i,
-    deptId: i,
-    deptName: departments[i % departments.length],
-    originScore: 100.0,
-    coeffient: (Math.random() * 0.4 + 0.8).toFixed(2),
-    finalScore: Math.floor(Math.random() * 20 + 80),
-    isChecked: i % 2 === 0 ? 1 : 0 // ✅ 初始核查状态
+function handlePeriodChange(val) {
+  selectedPeriod.value = val
+  title.value = `${val}部门绩效考核得分汇总表`
+  fetchTableData()
+}
+
+// ✅ 请求历史汇总数据
+async function fetchTableData() {
+  loading.value = true
+  try {
+    const res = await fetchHistorySummary(selectedPeriod.value)
+    tableData.value = Array.isArray(res.data) ? res.data : []
+  } catch (err) {
+    console.error('❌ 获取历史汇总失败:', err)
+    ElMessage.error('加载失败，请稍后重试')
+  } finally {
+    loading.value = false
+  }
+}
+
+// ✅ 跳转至部门明细页
+function goToDeptScore(deptId) {
+  router.push({
+    name: 'ScoreHistorySummary',
+    params: { deptId: String(deptId) },
+    query: { date: selectedPeriod.value }
   })
 }
 
-function toggleCheck(row, val) {
-  row.isChecked = val ? 1 : 0
-}
-
+// ✅ 平均分计算
 const avgScore = computed(() => {
   if (!tableData.value.length) return '-'
-  const total = tableData.value.reduce((sum, row) => sum + Number(row.finalScore), 0)
+  const total = tableData.value.reduce((sum, row) => sum + Number(row.finalScore || 0), 0)
   return (total / tableData.value.length).toFixed(2)
 })
 
+// ✅ 导出 PDF 操作
 function handleConfirmExport() {
   nextTick(() => {
     const el = printArea.value
@@ -145,18 +174,10 @@ function handleConfirmExport() {
     html2pdf()
       .set({
         margin: 10,
-        filename: `${dayjs().format('YYYY年MM月')}部门绩效考核得分汇总表.pdf`,
+        filename: `历史得分汇总_${selectedPeriod.value}.pdf`,
         pagebreak: { mode: ['avoid-all'] },
-        html2canvas: {
-          scale: 1.0,
-          backgroundColor: '#fff',
-          useCORS: true
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait'
-        }
+        html2canvas: { scale: 1.0, backgroundColor: '#fff', useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       })
       .from(el)
       .save()
@@ -210,7 +231,13 @@ function handleConfirmExport() {
   padding: 6px 10px;
 }
 
-/* ✅ 导出区域宽度限制为 A4 portrait 安全范围 */
+.loading-tip {
+  text-align: center;
+  margin: 12px 0;
+  color: #909399;
+}
+
+/* ✅ 打印区域样式（适配 A4 页面） */
 .print-area {
   max-width: 180mm;
   margin: 0 auto;
@@ -240,10 +267,10 @@ function handleConfirmExport() {
 
 .print-table tr,
 .print-table tbody {
-  page-break-inside: avoid; /* ✅ 表格行避免被分页裁切 */
+  page-break-inside: avoid;
 }
 
-/* 平均分 + 审批栏样式 */
+/* ✅ 平均分 + 审批栏样式 */
 .summary-section {
   font-size: 14px;
   margin-top: 12px;
@@ -261,14 +288,10 @@ function handleConfirmExport() {
   border-top: 1px dashed #ccc;
 }
 
-/* ✅ 弹窗预览区滚动容器 */
-.scroll-wrapper {
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
+/* ✅ 导出按钮区域 */
 .export-button-bar {
   margin-top: 24px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
 }
 </style>

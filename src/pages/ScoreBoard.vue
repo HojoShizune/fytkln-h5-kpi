@@ -5,28 +5,31 @@
     <!-- ✅ 表格区域 -->
     <div class="preview-table-wrapper">
       <div class="scrollable-table">
-        <table class="preview-table">
-          <thead>
-            <tr>
-              <th v-for="col in columnDefs" :key="col.prop">{{ col.label }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in tableData" :key="row.deptId">
-              <td>
-                <el-link type="primary" @click="goToDeptScore(row.deptId)">
-                  {{ row.deptName }}
-                </el-link>
-              </td>
-              <td>{{ row.originScore }}</td>
-              <td>{{ row.coeffient }}</td>
-              <td>{{ row.finalScore }}</td>
-              <td>
-                <el-checkbox :model-value="row.isChecked === 1" disabled />
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div v-if="loading" class="loading-tip">⏳ 正在加载打分数据中...</div>
+        <el-skeleton :loading="loading" animated>
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th v-for="col in columnDefs" :key="col.prop">{{ col.label }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in tableData" :key="row.deptId">
+                <td>
+                  <el-link type="primary" @click="goToDeptScore(row.deptId)">
+                    {{ row.deptName }}
+                  </el-link>
+                </td>
+                <td>{{ row.originScore }}</td>
+                <td>{{ row.coeffient }}</td>
+                <td>{{ row.finalScore }}</td>
+                <td>
+                  <el-checkbox :model-value="row.isChecked === 1" disabled />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </el-skeleton>
       </div>
 
       <div class="summary-section">
@@ -39,7 +42,7 @@
       </div>
     </div>
 
-    <!-- ✅ 合并后的按钮区域 -->
+    <!-- ✅ 按钮操作区域 -->
     <div class="export-button-bar">
       <el-button type="primary" @click="templateDialogVisible = true">
         📁 导入/导出打分模板
@@ -47,9 +50,15 @@
       <el-button type="success" @click="excelDialogVisible = true">
         📤 导出 PDF / EXCEL
       </el-button>
+      <el-button type="warning" @click="handleCalculate">
+        🧮 纪检考核项计算
+      </el-button>
+      <el-button type="primary" @click="handleRenew">
+        🧾 数据提交与重置
+      </el-button>
     </div>
 
-    <!-- ✅ 弹窗一：模板上传/下载 -->
+    <!-- ✅ 模板弹窗 -->
     <el-dialog v-model="templateDialogVisible" title="打分模板操作" width="420px">
       <div class="button-group">
         <el-button type="primary" @click="triggerFileUpload">📥 导入打分模板</el-button>
@@ -66,7 +75,26 @@
       </div>
     </el-dialog>
 
-    <!-- ✅ 弹窗二：PDF / Excel 导出 -->
+    <!-- ✅ 弹窗：纪检考核项计算 -->
+    <el-dialog v-model="dialogCalculateVisible" title="提示" width="400px">
+      <p>除了派驻纪检组以外，所有部门数据都已核查，是否继续进行纪检考核项计算？</p>
+      <template #footer>
+        <el-button @click="dialogCalculateVisible = false">取消</el-button>
+        <el-button type="warning" @click="confirmCalculate">确认执行</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ✅ 弹窗：数据提交与重置 -->
+    <el-dialog v-model="dialogRenewVisible" title="提示" width="400px">
+      <p>所有部门数据都已核查，请确保已导出汇总表和各部门 PDF 打分表。</p>
+      <p>⚠️ 提交与重置后不可再导出 PDF，是否继续？</p>
+      <template #footer>
+        <el-button @click="dialogRenewVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmRenew">确认提交与重置</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ✅ PDF / Excel 导出弹窗 -->
     <el-dialog v-model="excelDialogVisible" title="导出数据" width="420px">
       <div class="button-group">
         <button class="native-btn success" @click="exportDialogVisible = true">
@@ -81,7 +109,7 @@
       </div>
     </el-dialog>
 
-    <!-- ✅ PDF 弹窗预览 -->
+    <!-- ✅ PDF 预览弹窗 -->
     <el-dialog v-model="exportDialogVisible" title="导出预览" width="90%" top="4vh">
       <div class="scroll-wrapper">
         <div ref="printArea" class="print-area">
@@ -133,7 +161,9 @@ import {
   uploadScoreTemplate,
   downloadScoreTemplateFile,
   downloadAllDeptDetailFile,
-  downloadScoreSummaryFile
+  downloadScoreSummaryFile,
+  calculateAssessment,
+  renewAssessment
 } from '../api/score'
 
 // ✅ 页面标题
@@ -145,10 +175,12 @@ const printArea = ref(null)
 const uploadInput = ref(null)
 const loading = ref(false)
 
-// ✅ 弹窗状态
 const exportDialogVisible = ref(false)
 const templateDialogVisible = ref(false)
 const excelDialogVisible = ref(false)
+
+const dialogCalculateVisible = ref(false)
+const dialogRenewVisible = ref(false)
 
 // ✅ 表格列定义
 const columnDefs = [
@@ -161,54 +193,34 @@ const columnDefs = [
 
 // ✅ 路由跳转
 const router = useRouter()
+function goToDeptScore(deptId) {
+  router.push({ name: 'ScoreSummary', params: { deptId } })
+}
 
+// ✅ 页面加载获取数据
 onMounted(() => {
   fetchTableData()
 })
 
-// ✅ 获取数据
+// ✅ 加载打分数据（带 loading 控制）
 async function fetchTableData() {
+  loading.value = true
   try {
     const res = await fetchScoreSummary()
     tableData.value = Array.isArray(res.data.data) ? res.data.data : []
   } catch (err) {
     console.error('❌ 获取打分数据失败:', err)
+  } finally {
+    loading.value = false
   }
 }
 
-// ✅ 平均分
+// ✅ 平均分计算
 const avgScore = computed(() => {
   if (!tableData.value.length) return '-'
   const total = tableData.value.reduce((sum, row) => sum + Number(row.finalScore), 0)
   return (total / tableData.value.length).toFixed(2)
 })
-
-// ✅ 跳转详情
-function goToDeptScore(deptId) {
-  router.push({ name: 'ScoreSummary', params: { deptId } })
-}
-
-// ✅ PDF 导出
-function handleConfirmExport() {
-  nextTick(() => {
-    const el = printArea.value
-    if (!el) return
-
-    html2pdf()
-      .set({
-        margin: 10,
-        filename: `${title}.pdf`,
-        pagebreak: { mode: ['avoid-all'] },
-        html2canvas: { scale: 1.0, backgroundColor: '#fff', useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      })
-      .from(el)
-      .save()
-      .finally(() => {
-        exportDialogVisible.value = false
-      })
-  })
-}
 
 // ✅ 模板上传
 function triggerFileUpload() {
@@ -251,7 +263,29 @@ async function handleExportTemplate() {
   }
 }
 
-// ✅ 导出全部考核明细 Excel
+// ✅ PDF 导出
+function handleConfirmExport() {
+  nextTick(() => {
+    const el = printArea.value
+    if (!el) return
+
+    html2pdf()
+      .set({
+        margin: 10,
+        filename: `${title}.pdf`,
+        pagebreak: { mode: ['avoid-all'] },
+        html2canvas: { scale: 1.0, backgroundColor: '#fff', useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      })
+      .from(el)
+      .save()
+      .finally(() => {
+        exportDialogVisible.value = false
+      })
+  })
+}
+
+// ✅ 导出 Excel - 明细
 async function handleExportDetailExcel() {
   try {
     loading.value = true
@@ -266,7 +300,7 @@ async function handleExportDetailExcel() {
   }
 }
 
-// ✅ 导出得分汇总 Excel
+// ✅ 导出 Excel - 汇总
 async function handleExportSummaryExcel() {
   try {
     loading.value = true
@@ -278,6 +312,56 @@ async function handleExportSummaryExcel() {
     ElMessage.error('导出失败，请稍后再试')
   } finally {
     loading.value = false
+  }
+}
+
+// ✅ 纪检考核项点击按钮（条件提示）
+function handleCalculate() {
+  const others = tableData.value.filter(row => row.deptName !== '派驻纪检组')
+  const valid = others.length > 0 && others.every(row => Number(row.isChecked) === 1)
+
+  if (!valid) {
+    ElMessage.warning('❗ 非纪检组数据未全部核查，暂不可计算')
+    return
+  }
+
+  dialogCalculateVisible.value = true
+}
+
+// ✅ 数据提交与重置点击按钮（条件提示）
+function handleRenew() {
+  const valid = tableData.value.length > 0 && tableData.value.every(row => Number(row.isChecked) === 1)
+
+  if (!valid) {
+    ElMessage.warning('❗ 所有部门数据需核查完毕后才可提交与重置')
+    return
+  }
+
+  dialogRenewVisible.value = true
+}
+
+// ✅ 执行纪检考核项计算
+async function confirmCalculate() {
+  try {
+    await calculateAssessment()
+    ElMessage.success('✅ 纪检考核项计算成功')
+  } catch (err) {
+    console.error('❌ 纪检计算失败:', err)
+    ElMessage.error('计算失败，请稍后再试')
+  } finally {
+    dialogCalculateVisible.value = false
+    fetchTableData()
+  }
+}
+
+// ✅ 执行数据提交与重置
+async function confirmRenew() {
+  try {
+    await renewAssessment()
+    ElMessage.success('✅ 数据提交与重置成功')
+  } finally {
+    dialogRenewVisible.value = false
+    fetchTableData()
   }
 }
 </script>
@@ -444,5 +528,13 @@ async function handleExportSummaryExcel() {
 .native-btn.primary:hover {
   background-color: #66b1ff;
   border-color: #66b1ff;
+}
+
+.action-button-bar {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 </style>

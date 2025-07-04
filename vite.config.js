@@ -7,11 +7,11 @@ export default defineConfig({
     host: true,
     port: 5173,
     proxy: {
-      '/api': {
+      '/kpi': {
         target: 'http://192.168.1.200:8080',
         //target: 'http://58.241.232.147:8084',
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/api/, ''),//正式环境去掉
+        rewrite: path => path.replace(/^\/kpi/, ''),//正式环境去掉
         configure: (proxy) => {
           proxy.on('proxyRes', (proxyRes, req, res) => {
             // ✅ 清除 content-encoding，防止 Vite dev server 对 gzip 流误操作

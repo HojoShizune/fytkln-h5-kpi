@@ -19,23 +19,10 @@
     />
 
     <div class="table-toolbar">
-      <el-checkbox
-        v-if="isAuditAllowed"
-        v-model="checkAllStatus"
-        @change="handleToggleAllCheck"
-      >
+      <el-checkbox v-model="checkAllStatus" @change="handleToggleAllCheck">
         🔘 全部勾选为已核查
       </el-checkbox>
-
-      <el-button
-        v-if="isAuditAllowed"
-        type="success"
-        size="small"
-        @click="handleCheckAll"
-      >
-        ⚡ 一键核查
-      </el-button>
-
+      <el-button type="success" size="small" @click="handleCheckAll">⚡ 一键核查</el-button>
       <el-button type="warning" size="small" @click="submitScoreDialog.visible = true">
         📬 提交得分和备注
       </el-button>
@@ -100,7 +87,6 @@
             <el-checkbox
               :model-value="scope.row.isChecked === 1"
               @change="val => toggleCheck(scope.row, val)"
-              :disabled="!isAuditAllowed"
             />
           </template>
         </el-table-column>
@@ -150,13 +136,10 @@
       <template #footer>
         <el-button @click="confirmDialog.visible = false">关闭</el-button>
         <el-button
-          v-if="confirmDialog.success && isAuditAllowed"
+          v-if="confirmDialog.success"
           type="success"
           @click="confirmSuccess"
-        >
-          确认核查
-        </el-button>
-
+        >确认核查</el-button>
       </template>
     </el-dialog>
 
@@ -227,18 +210,13 @@ import html2pdf from 'html2pdf.js'
 import { Clock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { fetchAssessmentList, updateAssessmentCheck, updateAssessmentScore } from '../api/score'
-import { useUserStore } from '../store/user'
 
 const route = useRoute()
 const router = useRouter()
-const userStore = useUserStore()
 
 const deptId = route.params.deptId
 const deptName = ref('')
 const currentMonth = dayjs().format('YYYY年MM月')
-const isAuditAllowed = computed(() => [1, 2].includes(userStore.roleId))
-
-console.log('当前角色 roleId:', userStore.roleId)
 
 const submitScoreDialog = ref({ visible: false })
 const tableData = ref([])
