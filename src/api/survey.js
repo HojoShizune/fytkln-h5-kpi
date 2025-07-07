@@ -51,3 +51,8 @@ export const deleteQuestion = (id) => {
 export const submitAnswer = (data) => {
   return request.post('/answer/add', data)
 }
+
+// 获取当前用户可填写的问卷 ID 列表
+export const getSurveyToFillIds = () => {
+  return request.get('/survey/surveyToFill')
+}

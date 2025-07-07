@@ -249,7 +249,7 @@ const submit = async () => {
 }
 
 const goBack = () => {
-  router.push('/manage/manage')
+  router.push('/admin/questionnaire/manage')
 }
 
 onMounted(async () => {

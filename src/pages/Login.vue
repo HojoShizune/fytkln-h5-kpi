@@ -85,7 +85,7 @@ const onLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f2f5;
+  background: linear-gradient(to bottom right, #f0f2f5, #dde3ea);
 }
 
 .login-card {
@@ -93,7 +93,8 @@ const onLogin = async () => {
   padding: 40px;
   width: 320px;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); /* 更强阴影层次 */
+  border: 1px solid #dcdfe6; /* 加细边框提升卡片可见性 */
   text-align: center;
 }
 </style>

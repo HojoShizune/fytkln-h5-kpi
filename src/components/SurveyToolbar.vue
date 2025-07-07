@@ -25,14 +25,19 @@
       />
     </el-select>
 
-    <el-button type="primary" :loading="loading" @click="emit('compute')">
+    <el-button v-if="isCurrentPeriod" type="primary" :loading="loading" @click="emit('compute')">
       一键核算
     </el-button>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import dayjs from 'dayjs'
+
+const isCurrentPeriod = computed(() => {
+  return localPeriod.value === dayjs().format('YYYY-MM')
+})
 
 const props = defineProps({
   period: String,

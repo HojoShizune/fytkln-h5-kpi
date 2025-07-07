@@ -1,8 +1,11 @@
 import axios from 'axios'//若上线后可写死正式地址，就注释掉
 import { ElMessage } from 'element-plus'
 
+const baseApi = `${window.location.origin}${import.meta.env.VITE_APP_BASE_API}`
+
 const service = axios.create({
-  baseURL: import.meta.env.VITE_APP_BASE_API || '/', // ✅ 开发环境、生产环境都可走代理，记得改.env.production
+  baseURL: baseApi,
+  //baseURL: import.meta.env.VITE_APP_BASE_API || '/', // ✅ 开发环境、生产环境都可走代理，记得改.env.production
   //baseURL: 'https://your-internal-server.com/api', // ✅ 或上线后可写死正式地址，然后删掉config
   timeout: 10000
 })

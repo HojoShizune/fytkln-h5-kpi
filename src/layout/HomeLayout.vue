@@ -69,7 +69,25 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { House, Edit, View, PieChart, Download, Tools } from '@element-plus/icons-vue'
+import { HomeFilled,
+         Document,
+         Edit,
+         DocumentChecked,
+         Management,
+         UserFilled,
+         OfficeBuilding,
+         Histogram,
+         Memo,
+         DataLine,
+         EditPen,
+         Notebook,
+         Tools,
+         TrendCharts,
+         Opportunity,
+         DataBoard,
+         Calendar,
+         Lock 
+       } from '@element-plus/icons-vue'
 import { QuestionFilled as DefaultIcon } from '@element-plus/icons-vue'
 import { useUserStore } from '../store/user'
 import UserDropdown from '../components/UserDropdown.vue'
@@ -110,12 +128,24 @@ const menuRoutes = computed(() =>
 )
 
 const iconMap = {
-  House,
+  HomeFilled,
+  Document,
   Edit,
-  View,
-  PieChart,
-  Download,
-  Tools
+  DocumentChecked,
+  Management,
+  UserFilled,
+  OfficeBuilding,
+  Histogram,
+  Memo,
+  DataLine,
+  EditPen,
+  Notebook,
+  Tools,
+  TrendCharts,
+  Opportunity,
+  DataBoard,
+  Calendar,
+  Lock
 }
 </script>
 

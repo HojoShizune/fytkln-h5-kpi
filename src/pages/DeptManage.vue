@@ -83,7 +83,8 @@ const fetchTargets = async () => {
 const fetchDepts = async () => {
   loading.value = true
   try {
-    const res = await getDeptList({ searchStr: '', pageNum: 1, pageSize: 9999 })
+    //const res = await getDeptList({ searchStr: '', pageNum: 1, pageSize: 9999 })//
+    const res = await getDeptList()
     deptList.value = res.data || []
   } catch (err) {
     console.error('❌ 获取部门失败:', err)

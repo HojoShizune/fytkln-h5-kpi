@@ -1,3 +1,4 @@
+//import { createRouter, createWebHistory } from 'vue-router'//
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { useUserStore } from '../store/user'
 import { ElMessage } from 'element-plus'
@@ -8,8 +9,7 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../pages/Login.vue'),
-    meta: { title: '登录', icon: 'Lock' }
+    component: () => import('../pages/Login.vue')
   },
   {
     path: '/',
@@ -22,11 +22,11 @@ const routes = [
       {
         path: 'home',
         component: () => import('../pages/Home.vue'),
-        meta: { title: '首页', icon: 'HomeFilled', hidden: true }
+        meta: { title: '首页', icon: 'House', hidden: true }
       },
       {
         path: 'survey',
-        meta: { title: '问卷', icon: 'Document', roles: [3] },
+        meta: { title: '问卷', icon: 'Document', roles: [3]},
         children: [
           {
             path: '',
@@ -36,48 +36,48 @@ const routes = [
           {
             path: ':id',
             component: () => import('../pages/SurveyDetail.vue'),
-            meta: { title: '问卷详情', icon: 'DocumentChecked', hidden: true }
+            meta: { title: '问卷详情', hidden: true }
           }
         ]
       },
       {
         path: 'admin',
-        meta: { title: '管理员菜单', icon: 'Management', roles: [1, 2] },
+        meta: { title: '管理员菜单', icon: 'Setting', roles: [1 , 2]},
         children: [
           {
             path: 'manage',
             component: () => import('../pages/UserManage.vue'),
-            meta: { title: '用户管理', icon: 'UserFilled' }
+            meta: { title: '用户管理', icon: 'UserList', roles: [1] }
           },
           {
             path: 'dept',
             component: () => import('../pages/DeptManage.vue'),
-            meta: { title: '部门管理', icon: 'OfficeBuilding' }
+            meta: { title: '部门管理', icon: 'OfficeBuilding', roles: [1] }
           },
           {
             path: 'target',
             component: () => import('../pages/TargetManage.vue'),
-            meta: { title: '考核项管理', icon: 'Histogram' }
+            meta: { title: '考核项管理', icon: 'OfficeBuilding' }
           },
           {
             path: 'questionnaire',
             component: QuestionnaireLayout,
-            meta: { title: '问卷管理', icon: 'Memo', roles: [1] },
+            meta: { title: '问卷管理', icon: 'PieChart', roles: [1] },
             children: [
               {
                 path: 'result',
                 component: () => import('../pages/SurveyResult.vue'),
-                meta: { title: '结果查询与导出', icon: 'DataLine' }
+                meta: { title: '结果查询与导出', icon: 'PieChart' }
               },
               {
                 path: 'design',
                 component: () => import('../pages/SurveyDesigner.vue'),
                 meta: { title: '问卷设计', icon: 'EditPen', hidden: true }
-              },
+              },// 问卷设计页面: 已整合至组件SurveyEditor.vue；靠该页面调用SurveyEditor组件，需保留
               {
                 path: 'manage',
                 component: () => import('../pages/SurveyManage.vue'),
-                meta: { title: '问卷管理与设计', icon: 'Notebook' }
+                meta: { title: '问卷管理与设计', icon: 'List' }
               }
             ]
           }
@@ -86,35 +86,40 @@ const routes = [
       {
         path: 'scoring',
         component: ScoringLayout,
-        meta: { title: '打分', icon: 'Tools', roles: [1, 2, 4] },
+        meta: { title: '打分', icon: 'Tools', roles: [1 , 2 , 4] },
         children: [
           {
             path: 'score-board',
             component: () => import('../pages/ScoreBoard.vue'),
-            meta: { title: '部门得分汇总', icon: 'TrendCharts' }
+            meta: { title: '部门得分汇总', icon: 'PieChart' }
           },
           {
             path: 'summary/:deptId',
             name: 'ScoreSummary',
             component: () => import('../pages/ScoreSummary.vue'),
-            meta: { title: '指标打分', icon: 'Opportunity', hidden: true }
+            meta: { title: '指标打分', icon: 'PieChart', hidden: true }
           },
           {
             path: 'history-score-board',
             component: () => import('../pages/ScoreHistoryBoard.vue'),
-            meta: { title: '历史得分汇总', icon: 'DataBoard' }
+            meta: { title: '历史得分汇总', icon: 'PieChart' }
           },
           {
             path: 'historysummary/:deptId',
             name: 'ScoreHistorySummary',
             component: () => import('../pages/ScoreHistorySummary.vue'),
-            meta: { title: '历史指标打分', icon: 'Calendar', hidden: true }
+            meta: { title: '历史指标打分', icon: 'PieChart', hidden: true }
           }
         ]
       }
     ]
   }
 ]
+
+/*const router = createRouter({
+  history: createWebHistory(),
+  routes
+})*/
 
 const router = createRouter({
   history: createWebHashHistory(),

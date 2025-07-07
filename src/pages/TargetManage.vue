@@ -25,7 +25,7 @@
       <el-table-column
         prop="score"
         label="分值"
-        width="80"
+        width="120"
         sortable
         :filters="scoreFilters"
         :filter-method="filterHandler"
@@ -36,7 +36,7 @@
       <el-table-column
         prop="floating"
         label="浮动上限"
-        width="100"
+        width="140"
         sortable
         :filters="floatingFilters"
         :filter-method="filterHandler"
