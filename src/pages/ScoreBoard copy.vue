@@ -45,16 +45,16 @@
     <!-- ✅ 按钮操作区域 -->
     <div class="export-button-bar">
       <el-button type="primary" @click="templateDialogVisible = true">
-         导入/导出打分模板
+        📁 导入/导出打分模板
       </el-button>
       <el-button type="success" @click="excelDialogVisible = true">
-         导出 PDF / EXCEL
+        📤 导出 PDF / EXCEL
       </el-button>
       <el-button type="warning" @click="handleCalculate">
-         纪检考核项计算
+        🧮 纪检考核项计算
       </el-button>
       <el-button type="primary" @click="handleRenew">
-         数据提交
+        🧾 数据提交与重置
       </el-button>
 
       <CompletePdfExporter
@@ -76,7 +76,7 @@
           @change="handleFileUpload"
         />
         <el-button type="warning" @click="handleExportTemplate" :loading="loading">
-           导出打分模板
+          📤 导出打分模板
         </el-button>
       </div>
     </el-dialog>
@@ -104,13 +104,13 @@
     <el-dialog v-model="excelDialogVisible" title="导出数据" width="420px">
       <div class="button-group">
         <button class="native-btn success" @click="exportDialogVisible = true">
-           导出为PDF
+          📄 导出为PDF
         </button>
         <button class="native-btn warning" @click="handleExportDetailExcel">
-           导出所有部门考核明细
+          📤 导出所有部门考核明细
         </button>
         <button class="native-btn success" @click="handleExportSummaryExcel">
-           导出部门得分汇总
+          📤 导出部门得分汇总
         </button>
       </div>
     </el-dialog>
@@ -197,7 +197,7 @@
               <th>浮动上限</th>
               <th>初始得分</th>
               <th>考核部门</th>
-              <!--<th>备注</th> -->
+              <th>备注</th>
               <th>数据核查</th>
             </tr>
           </thead>
@@ -211,7 +211,7 @@
               <td>{{ row.floating }}</td>
               <td>{{ row.originScore ?? '-' }}</td>
               <td>{{ row.scoringDept }}</td>
-             <!-- <td style="white-space: pre-wrap;">{{ row.remark ?? '' }}</td> -->
+              <td style="white-space: pre-wrap;">{{ row.remark ?? '' }}</td>
               <td>{{ row.isChecked === 1 ? '✅ 已核查' : '❗ 未核查' }}</td>
             </tr>
             <tr style="font-weight: bold; background-color: #f0f0f0;">

@@ -8,10 +8,10 @@
       <el-input v-model="form.title" disabled />
     </el-form-item>
 
-    <!-- 描述可编辑 -->
+    <!-- 描述可编辑 
     <el-form-item label="问卷描述">
       <el-input v-model="form.description" type="textarea" />
-    </el-form-item>
+    </el-form-item>-->
   </el-form>
 
   <draggable v-model="form.questions" item-key="id" animation="200">

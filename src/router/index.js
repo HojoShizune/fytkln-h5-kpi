@@ -47,7 +47,7 @@ const routes = [
           {
             path: 'manage',
             component: () => import('../pages/UserManage.vue'),
-            meta: { title: '用户管理', icon: 'UserFilled' }
+            meta: { title: '用户管理', icon: 'UserFilled', roles: [1] }
           },
           {
             path: 'dept',
@@ -62,7 +62,7 @@ const routes = [
           {
             path: 'questionnaire',
             component: QuestionnaireLayout,
-            meta: { title: '问卷管理', icon: 'Memo', roles: [1] },
+            meta: { title: '问卷管理', icon: 'Memo' },
             children: [
               {
                 path: 'result',

@@ -10,7 +10,7 @@
         :label="q.title"
         :key="i"
         :prop="'q' + i"
-        :rules="[{ required: true, message: '请选择评价', trigger: 'change' }]"
+        :rules="q.type === '简答' ? [] : [{ required: true, message: '请选择评价', trigger: 'change' }]"
       >
         <el-radio-group v-if="q.type === '单选'" v-model="form['q' + i]">
           <el-radio v-for="opt in q.options" :key="opt.label" :label="opt.label">

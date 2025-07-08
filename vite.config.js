@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/kpi': {
-        target: 'http://192.168.1.200:8080',
+        target: 'http://192.168.1.199:8080',
         //target: 'http://58.241.232.147:8084',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/kpi/, ''),//开发代理配置，仅在 npm run dev 时生效

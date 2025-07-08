@@ -21,7 +21,7 @@
 
       <el-table-column label="操作" width="260">
         <template #default="{ row }">
-          <!-- 新增：点“查看”弹出信息编辑弹窗 -->
+          <!--点“查看”弹出信息编辑弹窗 -->
           <el-button
             size="small"
             type="info"

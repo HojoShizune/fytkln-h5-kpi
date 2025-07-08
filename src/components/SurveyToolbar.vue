@@ -11,7 +11,7 @@
     />
 
     <el-select
-      :model-value="activeSurveyId"
+      v-model="localSurveyId"
       placeholder="请选择问卷"
       style="width: 360px;"
       :disabled="!surveyList.length"

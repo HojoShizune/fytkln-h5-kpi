@@ -67,7 +67,7 @@ export function calculateAssessment() {
 
 // ✅ 数据提交与重置
 export function renewAssessment() {
-  return request.post('/assessment/renew')
+  return request.post('/assessment/submit')
 }
 
 /** ✅ 获取历史汇总（ScoreHistoryBoard.vue 使用） */

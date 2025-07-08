@@ -95,7 +95,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="数据核查" :min-width="120">
+        <el-table-column label="数据提交" :min-width="120">
           <template #default="scope">
             <el-checkbox
               :model-value="scope.row.isChecked === 1"
