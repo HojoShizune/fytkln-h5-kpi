@@ -80,7 +80,7 @@ const removeTarget = (id) => {
             >
               <template #content>
                 <div style="max-width: 300px; white-space: normal;">
-                  <div><strong>计算公式：</strong>{{ t.description || '—' }}</div>
+                  <div><strong>指标描述：</strong>{{ t.description || '—' }}</div>
                   <div style="margin-top: 4px;"><strong>评分标准：</strong>{{ t.scoringMethod || '—' }}</div>
                 </div>
               </template>

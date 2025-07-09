@@ -13,13 +13,27 @@
       <el-input v-model="form.description" type="textarea" />
     </el-form-item>-->
   </el-form>
+  <el-alert
+      type="info"
+      show-icon
+      class="alert-bar"
+      :closable="false"
+      title="题目可通过鼠标长按拖动改变顺序"
+  />
+
+  <div style="margin-top: 12px; margin-bottom: 12px;">
+    <el-button @click="addLocalQuestion('radio')">添加单选题</el-button>
+    <el-button @click="addLocalQuestion('checkbox')">添加多选题</el-button>
+    <el-button @click="addLocalQuestion('input')">添加填空题</el-button>
+    <el-button type="primary" @click="submit">发布问卷</el-button>
+  </div>
 
   <draggable v-model="form.questions" item-key="id" animation="200">
     <template #item="{ element, index }">
       <el-collapse style="margin-bottom: 12px;">
         <el-collapse-item :name="index">
           <template #title>
-            <b>题目 {{ index + 1 }}（{{ element.type }}）</b>
+            <b>题目 {{ index + 1 }}</b>
           </template>
 
           <el-input
@@ -52,7 +66,7 @@
                 type="danger"
                 @click="element.options.splice(i, 1)"
               >
-                删
+                删除该选项
               </el-button>
             </div>
             <el-button
@@ -76,15 +90,7 @@
     </template>
   </draggable>
 
-  <div style="margin-top: 12px;">
-    <el-button @click="addLocalQuestion('radio')">添加单选题</el-button>
-    <el-button @click="addLocalQuestion('checkbox')">添加多选题</el-button>
-    <el-button @click="addLocalQuestion('input')">添加填空题</el-button>
-  </div>
-
-  <div style="margin-top: 24px;">
-    <el-button type="primary" @click="submit">发布问卷</el-button>
-  </div>
+  
 
   <el-card style="margin-top: 24px;">
     <template #header>预览问卷</template>
@@ -302,3 +308,9 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style>
+.alert-bar {
+  margin-bottom: 16px;
+}
+</style>

@@ -10,13 +10,14 @@
       <el-button type="info" plain size="small" @click="goBack">🔙 返回汇总页</el-button>
     </div>
 
+    <!-- ✅ 提示
     <el-alert
       type="info"
       show-icon
       class="alert-bar"
       :closable="false"
       title="✅ 绿色代表数据已核查；❗红色代表数据待核查。点击本月得分填写分值"
-    />
+    />-->
 
     <div class="table-toolbar">
       <el-checkbox
@@ -24,7 +25,7 @@
         v-model="checkAllStatus"
         @change="handleToggleAllCheck"
       >
-        🔘 全部勾选为已核查
+        全部勾选为已核查
       </el-checkbox>
 
       <el-button
@@ -33,13 +34,12 @@
         size="small"
         @click="handleCheckAll"
       >
-        ⚡ 一键核查
+        一键核查
       </el-button>
 
       <el-button type="warning" size="small" @click="submitScoreDialog.visible = true">
-        📬 提交得分和备注
+        提交得分和备注
       </el-button>
-      <el-button type="primary" size="small" @click="exportDialogVisible = true">📄 导出 PDF</el-button>
     </div>
 
     <div class="scrollable-table-wrapper">
@@ -57,7 +57,7 @@
               <template #content>
                 <div>
                   <div>评分标准：{{ scope.row.scoringMethod }}</div>
-                  <div>计算公式：{{ scope.row.description }}</div>
+                  <div>指标描述：{{ scope.row.description }}</div>
                 </div>
               </template>
               <span style="cursor: help; text-decoration: dotted underline;">
@@ -174,48 +174,6 @@
         <el-button type="primary" @click="submitModifiedScores">确认提交</el-button>
       </template>
     </el-dialog>
-
-    <!-- ✅ 导出 PDF 弹窗 -->
-    <el-dialog v-model="exportDialogVisible" title="导出预览" width="90%" top="4vh">
-      <div class="scroll-wrapper">
-        <div ref="printArea" class="print-area">
-          <h2 class="print-title">{{ deptName }}（{{ currentMonth }}）</h2>
-          <table class="print-table">
-            <thead>
-              <tr>
-                <th>考核项</th>
-                <th>分值</th>
-                <th>浮动上限</th>
-                <th>初始得分</th>
-                <th>考核部门</th>
-                <th>备注</th>
-                <th>数据核查</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(row, idx) in tableData" :key="row.id ?? idx">
-                <td>{{ row.targetName }}</td>
-                <td>{{ row.score }}</td>
-                <td>{{ row.floating }}</td>
-                <td>{{ localScoreMap[getRowKey(row, idx)] ?? '-' }}</td>
-                <td>{{ row.scoringDept }}</td>
-                <td style="white-space: pre-wrap;">{{ formatRemark(row.remark) }}</td>
-                <td>{{ row.isChecked === 1 ? '✅ 已核查' : '❗ 未核查' }}</td>
-              </tr>
-              <tr style="font-weight: bold; background-color: #f0f0f0;">
-                <td colspan="3">总分</td>
-                <td>{{ totalScore }}</td>
-                <td colspan="3"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="exportDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmExport">确认导出 PDF</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -238,13 +196,12 @@ const deptName = ref('')
 const currentMonth = dayjs().format('YYYY年MM月')
 const isAuditAllowed = computed(() => [1, 2].includes(userStore.roleId))
 
-console.log('当前角色 roleId:', userStore.roleId)
+
 
 const submitScoreDialog = ref({ visible: false })
 const tableData = ref([])
 const localScoreMap = ref({})
 const printArea = ref(null)
-const exportDialogVisible = ref(false)
 const checkAllStatus = ref(false)
 
 // ✅ 每行唯一 key 生成器
@@ -252,6 +209,7 @@ const getRowKey = (row, index) => String(row.id ?? index)
 
 onMounted(() => {
   if (deptId) loadAssessmentList(deptId)
+  console.log('当前角色 roleId:', userStore.roleId)
 })
 
 async function loadAssessmentList(id) {
@@ -371,34 +329,6 @@ async function confirmSuccess() {
   }
 }
 
-
-function handleConfirmExport() {
-  const el = printArea.value
-  if (!el) return
-
-  html2pdf()
-    .set({
-      margin: 10,
-      filename: `${currentMonth}_${deptName.value}_部门指标打分.pdf`,
-      pagebreak: { mode: ['avoid-all'] },
-      html2canvas: {
-        scale: 1.0,
-        backgroundColor: '#fff',
-        useCORS: true
-      },
-      jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait'
-      }
-    })
-    .from(el)
-    .save()
-    .finally(() => {
-      exportDialogVisible.value = false
-    })
-}
-
 function formatRemark(text) {
   if (!text) return ''
   const maxPerLine = 18
@@ -414,7 +344,7 @@ function goBack() {
 }
 </script>
 
-<style scoped>
+<style>
 .score-board-page {
   padding: 24px 0;
 }
@@ -463,51 +393,31 @@ function goBack() {
   margin-left: 4px;
 }
 
-/* ✅ 导出弹窗内容区域 */
-.scroll-wrapper {
-  max-height: 80vh;
-  overflow-y: auto;
+/* 🌙 暗黑模式适配补充（保留原结构不动） */
+.score-board-page {
+  background-color: var(--el-bg-color);               /* ✅ 页面背景适配 */
+  color: var(--el-text-color-primary);                /* ✅ 主文字色适配 */
 }
 
-/* ✅ 打印区域容器 */
-.print-area {
-  max-width: 180mm;
-  margin: 0 auto;
-  padding: 16px;
-  background-color: white;
+.summary-bar {
+  color: var(--el-text-color-primary);                /* ✅ 替换文字颜色 */
 }
 
-.print-title {
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 12px;
+.summary-bar strong {
+  color: var(--el-color-primary);                     /* ✅ 替换高亮蓝色 */
 }
 
-/* ✅ 打印表格样式 */
-.print-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: center;
-  font-size: 13px;
+.el-table th,
+.el-table td {
+  background-color: var(--el-bg-color);               /* ✅ 表格背景适配 */
+  border-color: var(--el-border-color);               /* ✅ 表格边框色 */
+  color: var(--el-text-color-primary);                /* ✅ 表格文字色 */
 }
 
-.print-table th,
-.print-table td {
-  border: 1px solid #dcdfe6;
-  padding: 4px 6px;
-  vertical-align: top;
-  white-space: pre-wrap;
-  word-break: break-word;
+.el-checkbox,
+.el-link,
+.el-input-number {
+  color: var(--el-text-color-primary);                /* ✅ 组件文字色适配 */
 }
 
-.print-table tr:last-child {
-  background-color: #f0f0f0;
-  font-weight: bold;
-}
-
-.print-table tr,
-.print-table tbody {
-  page-break-inside: avoid;
-}
 </style>

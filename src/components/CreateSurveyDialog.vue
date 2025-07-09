@@ -15,7 +15,7 @@
         />
       </el-form-item>
 
-      <el-form-item label="所属部门">
+      <el-form-item label="打分部门">
         <el-select v-model="form.deptId" placeholder="请选择部门">
           <el-option
             v-for="d in deptList"

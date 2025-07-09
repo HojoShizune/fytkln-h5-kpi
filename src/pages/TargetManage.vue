@@ -43,7 +43,7 @@
         filter-multiple="false"
         :formatter="(_, __, val) => isFinite(val) ? Number(val).toFixed(2) : '--'"
       />
-      <!-- 所属部门列 -->
+      <!-- 打分部门列 -->
       <el-table-column
         prop="deptName"
         label="考核部门"
@@ -52,8 +52,8 @@
         :filter-method="filterHandler"
         filter-multiple="false"
       />
-      <!-- 计算公式列，不参与筛选排序 -->
-      <el-table-column label="计算公式">
+      <!-- 指标描述列，不参与筛选排序 -->
+      <el-table-column label="指标描述">
         <template #default="{ row }">
           <el-tooltip effect="dark" placement="top" :content="row.description">
             <span>
@@ -117,16 +117,16 @@
           <el-input-number v-model="form.floating" :min="-9999" :step="0.1" :precision="2" />
         </el-form-item>
 
-        <el-form-item label="计算公式">
-          <el-input v-model="form.description" type="textarea" placeholder="请输入计算公式" />
+        <el-form-item label="指标描述">
+          <el-input v-model="form.description" type="textarea" placeholder="请输入指标描述" />
         </el-form-item>
 
         <el-form-item label="评分标准">
           <el-input v-model="form.scoringMethod" type="textarea" placeholder="请输入评分标准" />
         </el-form-item>
 
-        <el-form-item label="所属部门">
-          <el-select v-model="form.deptId" placeholder="请选择所属部门">
+        <el-form-item label="打分部门">
+          <el-select v-model="form.deptId" placeholder="请选择打分部门">
             <el-option
               v-for="dept in deptList"
               :key="dept.deptId"
@@ -257,7 +257,7 @@ const onSubmit = async () => {
     return
   }
   if (!form.value.description || !form.value.description.trim()) {
-    ElMessage.warning('请填写计算公式')
+    ElMessage.warning('请填写指标描述')
     return
   }
   if (!form.value.scoringMethod || !form.value.scoringMethod.trim()) {
@@ -265,7 +265,7 @@ const onSubmit = async () => {
     return
   }
   if (!form.value.deptId) {
-    ElMessage.warning('请选择所属部门')
+    ElMessage.warning('请选择打分部门')
     return
   }
   if (isEdit.value && JSON.stringify(form.value) === JSON.stringify(originalForm.value)) {

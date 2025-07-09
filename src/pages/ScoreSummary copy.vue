@@ -44,7 +44,7 @@
               <template #content>
                 <div>
                   <div>评分标准：{{ scope.row.scoringMethod }}</div>
-                  <div>计算公式：{{ scope.row.description }}</div>
+                  <div>指标描述：{{ scope.row.description }}</div>
                 </div>
               </template>
               <span style="cursor: help; text-decoration: dotted underline;">

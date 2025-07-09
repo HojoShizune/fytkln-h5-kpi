@@ -7,6 +7,8 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import * as ElIcons from '@element-plus/icons-vue'
+import 'element-plus/theme-chalk/dark/css-vars.css'
+//import './assets/theme-vars.css'// //Element Plus 的组件暗黑模式适配(有大问题，弃用)//
 
 
 import { createPinia } from 'pinia'

@@ -83,3 +83,11 @@ export function fetchHistory(deptId, date) {
     params: { deptId, date }
   })
 }
+
+// ✅ 下载后端整合生成的 PDF 文件（用于 RemotePdfViewer.vue）
+export function downloadCompletePdfFile() {
+  return request.get('/assessment/exportAll', {
+    responseType: 'blob',
+    skipResponseInterceptor: true
+  })
+}

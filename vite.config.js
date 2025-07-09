@@ -9,17 +9,30 @@ export default defineConfig({
     proxy: {
       '/kpi': {
         target: 'http://192.168.1.199:8080',
-        //target: 'http://58.241.232.147:8084',
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/kpi/, ''),//开发代理配置，仅在 npm run dev 时生效
+        rewrite: path => path.replace(/^\/kpi/, ''),
         configure: (proxy) => {
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            // ✅ 清除 content-encoding，防止 Vite dev server 对 gzip 流误操作
+          proxy.on('proxyRes', (proxyRes) => {
             delete proxyRes.headers['content-encoding']
-    
-            // ✅ 同时可删除 transfer-encoding 以防 chunked 编码被误解
             delete proxyRes.headers['transfer-encoding']
           })
+        }
+      }
+    }
+  },
+  build: {
+    chunkSizeWarningLimit: 1000, // 提高限制，避免警告
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // ✅ Vue 核心类库
+          vue: ['vue', 'vue-router', 'pinia'],
+          // ✅ UI库分离打包
+          elementPlus: ['element-plus'],
+          // ✅ 工具类库
+          utils: ['dayjs', 'file-saver'],
+          // ✅ PDF 打印 / 导出类库
+          pdfUtils: ['html2pdf.js', 'html2canvas', 'jspdf']
         }
       }
     }

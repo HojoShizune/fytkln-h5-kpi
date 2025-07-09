@@ -4,7 +4,7 @@
       返回
     </el-button>
     <h2>{{ survey.title }}</h2>
-    <el-form ref="formRef" :model="form" label-width="300px">
+    <el-form ref="formRef" :model="form" label-width="300px" label-position="left">
       <el-form-item
         v-for="(q, i) in survey.questions"
         :label="q.title"
@@ -17,7 +17,7 @@
             {{ opt.text }}
           </el-radio>
         </el-radio-group>
-        <el-input v-else v-model="form['q' + i]" placeholder="请填写" />
+        <el-input v-else v-model="form['q' + i]" placeholder="请填写（非必填）" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="onSubmit">提交</el-button>
@@ -106,12 +106,45 @@ const onReset = () => {
 }
 </script>
 
-<style scoped>
+<style>
 .form-wrapper {
   max-width: 800px;
   margin: auto;
   padding: 32px;
-  background: #fff;
+  background-color: var(--el-bg-color); /* ✅ 支持暗黑和亮模式自动适配 */
   border-radius: 8px;
+  color: var(--el-text-color-primary);  /* ✅ 文字颜色随模式适配 */
+}
+
+/* ✅ 每个题目的底部间距 */
+:deep(.el-form-item) {
+  margin-bottom: 28px;
+  align-items: flex-start;
+}
+
+/* ✅ 题干标题样式：允许换行，行距收紧，上下间距均衡 */
+:deep(.el-form-item__label) {
+  white-space: normal !important;
+  line-height: 1.4;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--el-text-color-primary); /* ✅ 标题颜色自动适配 */
+}
+
+/* ✅ 控件微调：选项组与标题之间拉开一点点 */
+:deep(.el-radio-group),
+:deep(.el-input) {
+  margin-top: 6px;
+}
+
+/* ✅ 替换按钮 hover 等组件颜色建议（可选） */
+.el-button {
+  color: var(--el-button-text-color, #fff);
+  background-color: var(--el-color-primary);
+  border-color: var(--el-color-primary);
 }
 </style>
+
+

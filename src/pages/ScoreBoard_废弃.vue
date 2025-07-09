@@ -45,23 +45,25 @@
     <!-- ✅ 按钮操作区域 -->
     <div class="export-button-bar">
       <el-button type="primary" @click="templateDialogVisible = true">
-        📁 导入/导出打分模板
+         导入/导出打分模板
       </el-button>
       <el-button type="success" @click="excelDialogVisible = true">
-        📤 导出 PDF / EXCEL
+         导出 PDF / EXCEL
       </el-button>
       <el-button type="warning" @click="handleCalculate">
-        🧮 纪检考核项计算
+         纪检考核项计算
       </el-button>
       <el-button type="primary" @click="handleRenew">
-        🧾 数据提交与重置
+         数据提交
       </el-button>
-
+      <el-button type="primary" @click="openRemotePdf">
+        📄 浏览后端导出的 PDF
+      </el-button>
+      <!-- ✅ 按钮操作区域 
       <CompletePdfExporter
         :title="title"
         :selectorList="['#score-board-preview', '#score-summary-preview']"
-      />
-
+      />-->
     </div>
 
     <!-- ✅ 模板弹窗 -->
@@ -76,7 +78,7 @@
           @change="handleFileUpload"
         />
         <el-button type="warning" @click="handleExportTemplate" :loading="loading">
-          📤 导出打分模板
+           导出打分模板
         </el-button>
       </div>
     </el-dialog>
@@ -104,19 +106,19 @@
     <el-dialog v-model="excelDialogVisible" title="导出数据" width="420px">
       <div class="button-group">
         <button class="native-btn success" @click="exportDialogVisible = true">
-          📄 导出为PDF
+           导出为PDF
         </button>
         <button class="native-btn warning" @click="handleExportDetailExcel">
-          📤 导出所有部门考核明细
+           导出所有部门考核明细
         </button>
         <button class="native-btn success" @click="handleExportSummaryExcel">
-          📤 导出部门得分汇总
+           导出部门得分汇总
         </button>
       </div>
     </el-dialog>
 
-    <!-- ✅ PDF 预览弹窗 -->
-    <el-dialog v-model="exportDialogVisible" title="导出预览" width="90%" top="4vh">
+    <!-- ✅ PDF 预览弹窗(html2pdf插件与浏览器打印共用，废弃) -->
+    <!--<el-dialog v-model="exportDialogVisible" title="导出预览" width="90%" top="4vh">
       <div class="scroll-wrapper">
         <div ref="printArea" class="print-area">
           <h2 class="print-title">{{ title }}</h2>
@@ -150,10 +152,10 @@
         <el-button @click="exportDialogVisible = false">取消</el-button>
         <el-button type="primary" @click="handleConfirmExport">确认导出 PDF</el-button>
       </template>
-    </el-dialog>
+    </el-dialog>-->
 
-    <!-- ✅ 汇总页输出容器：用于整合导出组件 -->
-    <div id="score-board-preview" style="display: none;">
+    <!-- ✅ 汇总页输出容器：用于整合导出组件(浏览器打印用，废弃) -->
+    <!--<div id="score-board-preview" style="display: none;">
       <h2 class="print-title">{{ title }}</h2>
       <table class="print-table">
         <thead>
@@ -179,10 +181,10 @@
           <span>制表人：</span>
         </div>
       </div>
-    </div>
+    </div>-->
 
-      <!-- ✅ 评分详情输出容器：用于整合导出组件 -->
-    <div id="score-summary-preview" style="display: none;">
+    <!-- ✅ 评分详情输出容器：用于整合导出组件(浏览器打印用，废弃) -->
+    <!--<div id="score-summary-preview" style="display: none;">
       <div
         v-for="dept in tableData"
         :key="dept.deptId"
@@ -211,7 +213,7 @@
               <td>{{ row.floating }}</td>
               <td>{{ row.originScore ?? '-' }}</td>
               <td>{{ row.scoringDept }}</td>
-              <td style="white-space: pre-wrap;">{{ row.remark ?? '' }}</td>
+              <td style="white-space: pre-wrap;">{{ row.remark ?? '' }}</td> 
               <td>{{ row.isChecked === 1 ? '✅ 已核查' : '❗ 未核查' }}</td>
             </tr>
             <tr style="font-weight: bold; background-color: #f0f0f0;">
@@ -222,9 +224,10 @@
           </tbody>
         </table>
       </div>
-    </div>
-  
+    </div>-->
   </div>
+
+  <RemotePdfViewer ref="remotePdfRef" />
 </template>
 
 <script setup>
@@ -245,8 +248,10 @@ import {
   renewAssessment,
   fetchAssessmentList
 } from '../api/score'
+import RemotePdfViewer from '../components/RemotePdfViewer.vue' 
 
 const assessmentMap = ref({})
+const remotePdfRef = ref(null)
 
 async function fetchAllDepartmentDetails() {
   const result = {}
@@ -301,6 +306,10 @@ function getTotal(list) {
   return Array.isArray(list)
     ? list.reduce((sum, row) => sum + Number(row.originScore || 0), 0).toFixed(2)
     : '0.00'
+}
+
+function openRemotePdf() {
+  remotePdfRef.value?.open()
 }
 
 // ✅ 页面加载获取数据

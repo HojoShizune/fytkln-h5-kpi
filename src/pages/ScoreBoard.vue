@@ -44,25 +44,50 @@
 
     <!-- ✅ 按钮操作区域 -->
     <div class="export-button-bar">
-      <el-button type="primary" @click="templateDialogVisible = true">
-         导入/导出打分模板
-      </el-button>
-      <el-button type="success" @click="excelDialogVisible = true">
-         导出 PDF / EXCEL
-      </el-button>
-      <el-button type="warning" @click="handleCalculate">
-         纪检考核项计算
-      </el-button>
-      <el-button type="primary" @click="handleRenew">
-         数据提交
+      <!-- 🔒 指标管理/审核人员（roleId != 2 显示） -->
+      <el-button
+        v-if="userStore.roleId !== 2 && userStore.roleId !== 3"
+        type="primary"
+        @click="templateDialogVisible = true"
+      >
+        导入/导出打分模板
       </el-button>
 
-      <CompletePdfExporter
-        :title="title"
-        :selectorList="['#score-board-preview', '#score-summary-preview']"
-      />
+      <!-- 🔒 问卷评分人员不显示（roleId != 3） -->
+      <el-button
+        v-if="userStore.roleId !== 3"
+        type="success"
+        @click="excelDialogVisible = true"
+      >
+        导出 EXCEL
+      </el-button>
 
+      <!-- 🔒 KPI人员不可见（roleId != 4）且不是问卷员 -->
+      <el-button
+        v-if="userStore.roleId !== 4 && userStore.roleId !== 3"
+        type="warning"
+        @click="handleCalculate"
+     >
+        纪检考核项计算
+      </el-button>
+
+      <el-button
+        v-if="userStore.roleId !== 4 && userStore.roleId !== 3"
+        type="primary"
+        @click="handleRenew"
+      >
+        数据提交
+      </el-button>
+
+      <el-button
+        v-if="userStore.roleId !== 4 && userStore.roleId !== 3"
+        type="primary"
+        @click="openRemotePdf"
+      >
+        导出 PDF
+      </el-button>
     </div>
+
 
     <!-- ✅ 模板弹窗 -->
     <el-dialog v-model="templateDialogVisible" title="打分模板操作" width="420px">
@@ -93,7 +118,7 @@
     <!-- ✅ 弹窗：数据提交与重置 -->
     <el-dialog v-model="dialogRenewVisible" title="提示" width="400px">
       <p>所有部门数据都已核查，请确保已导出汇总表和各部门 PDF 打分表。</p>
-      <p>⚠️ 提交与重置后不可再导出 PDF，是否继续？</p>
+      <p>提交与重置后不可再导出 PDF，是否继续？</p>
       <template #footer>
         <el-button @click="dialogRenewVisible = false">取消</el-button>
         <el-button type="primary" @click="confirmRenew">确认提交与重置</el-button>
@@ -103,9 +128,6 @@
     <!-- ✅ PDF / Excel 导出弹窗 -->
     <el-dialog v-model="excelDialogVisible" title="导出数据" width="420px">
       <div class="button-group">
-        <button class="native-btn success" @click="exportDialogVisible = true">
-           导出为PDF
-        </button>
         <button class="native-btn warning" @click="handleExportDetailExcel">
            导出所有部门考核明细
         </button>
@@ -115,115 +137,8 @@
       </div>
     </el-dialog>
 
-    <!-- ✅ PDF 预览弹窗 -->
-    <el-dialog v-model="exportDialogVisible" title="导出预览" width="90%" top="4vh">
-      <div class="scroll-wrapper">
-        <div ref="printArea" class="print-area">
-          <h2 class="print-title">{{ title }}</h2>
-          <table class="print-table">
-            <thead>
-              <tr>
-                <th v-for="col in columnDefs" :key="col.prop">{{ col.label }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in tableData" :key="row.deptId">
-                <td>{{ row.deptName }}</td>
-                <td>{{ row.originScore }}</td>
-                <td>{{ row.coeffient }}</td>
-                <td>{{ row.finalScore }}</td>
-                <td>{{ row.isChecked === 1 ? '✅ 已核查' : '❗ 未核查' }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="summary-section">
-            <div class="avg-row">平均分：{{ avgScore }}</div>
-            <div class="sign-row">
-              <span>审批人：____________</span>
-              <span>审核人：____________</span>
-              <span>制表人：____________</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="exportDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmExport">确认导出 PDF</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- ✅ 汇总页输出容器：用于整合导出组件 -->
-    <div id="score-board-preview" style="display: none;">
-      <h2 class="print-title">{{ title }}</h2>
-      <table class="print-table">
-        <thead>
-          <tr>
-            <th v-for="col in columnDefs" :key="col.prop">{{ col.label }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in tableData" :key="row.deptId">
-            <td>{{ row.deptName }}</td>
-            <td>{{ row.originScore }}</td>
-            <td>{{ row.coeffient }}</td>
-            <td>{{ row.finalScore }}</td>
-            <td>{{ row.isChecked === 1 ? '✅ 已核查' : '❗ 未核查' }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="summary-section">
-        <div class="avg-row">平均分：{{ avgScore }}</div>
-        <div class="sign-row">
-          <span>审批人：</span>
-          <span>审核人：</span>
-          <span>制表人：</span>
-        </div>
-      </div>
-    </div>
-
-      <!-- ✅ 评分详情输出容器：用于整合导出组件 -->
-    <div id="score-summary-preview" style="display: none;">
-      <div
-        v-for="dept in tableData"
-        :key="dept.deptId"
-        class="print-area"
-      >
-        <h2 class="print-title">{{ dept.deptName }}（{{ title }}）</h2>
-        <table class="print-table">
-          <thead>
-            <tr>
-              <th>考核项</th>
-              <th>分值</th>
-              <th>浮动上限</th>
-              <th>初始得分</th>
-              <th>考核部门</th>
-              <!--<th>备注</th> -->
-              <th>数据核查</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(row, idx) in assessmentMap[dept.deptId]"
-              :key="row.id ?? idx"
-            >
-              <td>{{ row.targetName }}</td>
-              <td>{{ row.score }}</td>
-              <td>{{ row.floating }}</td>
-              <td>{{ row.originScore ?? '-' }}</td>
-              <td>{{ row.scoringDept }}</td>
-             <!-- <td style="white-space: pre-wrap;">{{ row.remark ?? '' }}</td> -->
-              <td>{{ row.isChecked === 1 ? '✅ 已核查' : '❗ 未核查' }}</td>
-            </tr>
-            <tr style="font-weight: bold; background-color: #f0f0f0;">
-              <td colspan="3">总分</td>
-              <td>{{ getTotal(assessmentMap[dept.deptId]) }}</td>
-              <td colspan="3"></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  
+    <!-- ✅ 接入后端 PDF 预览组件 -->
+    <RemotePdfViewer ref="remotePdfRef" />
   </div>
 </template>
 
@@ -245,8 +160,59 @@ import {
   renewAssessment,
   fetchAssessmentList
 } from '../api/score'
+import RemotePdfViewer from '../components/RemotePdfViewer.vue' 
+import { useUserStore } from '../store/user'
+
+// ✅ 页面标题
+const title = `${dayjs().format('YYYY年MM月')}部门绩效考核得分汇总表`
+
+// ✅ 响应式变量
+const tableData = ref([])
+const printArea = ref(null)
+const uploadInput = ref(null)
+const loading = ref(false)
+const userStore = useUserStore()
 
 const assessmentMap = ref({})
+const remotePdfRef = ref(null)
+
+const exportDialogVisible = ref(false)
+const templateDialogVisible = ref(false)
+const excelDialogVisible = ref(false)
+
+const dialogCalculateVisible = ref(false)
+const dialogRenewVisible = ref(false)
+
+// ✅ 表格列定义
+const columnDefs = [
+  { prop: 'deptName', label: '部门名称' },
+  { prop: 'originScore', label: '起始分值' },
+  { prop: 'coeffient', label: '浮动系数' },
+  { prop: 'finalScore', label: '最终得分' },
+  { prop: 'isChecked', label: '数据核查' }
+]
+
+// ✅ 页面加载获取数据
+onMounted(() => {
+  fetchTableData()
+  console.log('当前角色 roleId:', userStore.roleId)
+})
+
+// ✅ 路由跳转
+const router = useRouter()
+function goToDeptScore(deptId) {
+  router.push({ name: 'ScoreSummary', params: { deptId } })
+}
+
+function getTotal(list) {
+  return Array.isArray(list)
+    ? list.reduce((sum, row) => sum + Number(row.originScore || 0), 0).toFixed(2)
+    : '0.00'
+}
+
+function openRemotePdf() {
+  remotePdfRef.value?.open()
+}
 
 async function fetchAllDepartmentDetails() {
   const result = {}
@@ -265,49 +231,6 @@ async function fetchAllDepartmentDetails() {
   console.log('评分详情加载情况:', assessmentMap.value)
 
 }
-
-// ✅ 页面标题
-const title = `${dayjs().format('YYYY年MM月')}部门绩效考核得分汇总表`
-
-// ✅ 响应式变量
-const tableData = ref([])
-const printArea = ref(null)
-const uploadInput = ref(null)
-const loading = ref(false)
-
-const exportDialogVisible = ref(false)
-const templateDialogVisible = ref(false)
-const excelDialogVisible = ref(false)
-
-const dialogCalculateVisible = ref(false)
-const dialogRenewVisible = ref(false)
-
-// ✅ 表格列定义
-const columnDefs = [
-  { prop: 'deptName', label: '部门名称' },
-  { prop: 'originScore', label: '起始分值' },
-  { prop: 'coeffient', label: '浮动系数' },
-  { prop: 'finalScore', label: '最终得分' },
-  { prop: 'isChecked', label: '数据核查' }
-]
-
-// ✅ 路由跳转
-const router = useRouter()
-function goToDeptScore(deptId) {
-  router.push({ name: 'ScoreSummary', params: { deptId } })
-}
-
-function getTotal(list) {
-  return Array.isArray(list)
-    ? list.reduce((sum, row) => sum + Number(row.originScore || 0), 0).toFixed(2)
-    : '0.00'
-}
-
-// ✅ 页面加载获取数据
-onMounted(() => {
-  fetchTableData()
-  
-})
 
 // ✅ 加载打分数据（带 loading 控制）
 async function fetchTableData() {
@@ -476,28 +399,30 @@ async function confirmRenew() {
 }
 </script>
 
-<style scoped>
+<style>
 .score-summary-page {
   padding: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: white;
+  background-color: var(--el-bg-color); /* ✅ 支持暗黑背景 */
 }
 
 .page-title {
   font-size: 20px;
   font-weight: bold;
   margin-bottom: 16px;
+  color: var(--el-text-color-primary); /* ✅ 适配字体颜色 */
 }
 
 .preview-table-wrapper {
   margin-top: 32px;
   width: 100%;
   max-width: 1000px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color); /* ✅ 替换亮色边框 */
   padding: 24px;
-  background-color: white;
+  background-color: var(--el-bg-color);      /* ✅ 背景适配 */
+  color: var(--el-text-color-primary);       /* ✅ 文字色适配 */
 }
 
 .scrollable-table {
@@ -511,51 +436,21 @@ async function confirmRenew() {
   border-collapse: collapse;
   text-align: center;
   font-size: 14px;
+  color: var(--el-text-color-primary);       /* ✅ 表格文字色 */
+  background-color: var(--el-bg-color);      /* ✅ 表格背景色 */
 }
 
 .preview-table th,
 .preview-table td {
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color);  /* ✅ 替换表格边框色 */
   padding: 6px 10px;
-}
-
-/* ✅ 打印区域样式（A4 页面适配） */
-.print-area {
-  max-width: 180mm;
-  margin: 0 auto;
-  padding: 16px;
-  background: white;
-}
-
-.print-title {
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 12px;
-}
-
-.print-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: center;
-  font-size: 13px;
-}
-
-.print-table th,
-.print-table td {
-  border: 1px solid #dcdfe6;
-  padding: 4px 6px;
-}
-
-.print-table tr,
-.print-table tbody {
-  page-break-inside: avoid;
 }
 
 /* ✅ 平均分 + 审批栏样式 */
 .summary-section {
   font-size: 14px;
   margin-top: 12px;
+  color: var(--el-text-color-primary);       /* ✅ 审批文字颜色 */
 }
 
 .avg-row {
@@ -567,7 +462,7 @@ async function confirmRenew() {
   display: flex;
   justify-content: space-between;
   padding-top: 15px;
-  border-top: 1px dashed #ccc;
+  border-top: 1px dashed var(--el-border-color); /* ✅ 替换虚线颜色 */
 }
 
 /* ✅ 导出按钮区域样式 */
@@ -579,16 +474,10 @@ async function confirmRenew() {
   gap: 16px;
 }
 
-/* ✅ 弹窗预览容器滚动控制 */
-.scroll-wrapper {
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
 .button-group {
   display: flex;
   flex-direction: column;
-  align-items: stretch; /* ✅ 所有按钮填满同样宽度 */
+  align-items: stretch;
   gap: 12px;
   padding: 12px;
 }
@@ -609,42 +498,29 @@ async function confirmRenew() {
 
 /* ✅ success 风格对应 el-button type="success" */
 .native-btn.success {
-  color: #fff;
-  background-color: #67c23a;
-  border-color: #67c23a;
+  color: var(--el-button-text-color, #fff);                 /* ✅ 适配字体色 */
+  background-color: var(--el-color-success);               /* ✅ 成功背景色 */
+  border-color: var(--el-color-success);                   /* ✅ 成功边框色 */
 }
 .native-btn.success:hover {
-  background-color: #85ce61;
-  border-color: #85ce61;
+  background-color: var(--el-color-success-light);         /* ✅ hover 效果 */
+  border-color: var(--el-color-success-light);
 }
 
-/* ✅ warning 风格对应 el-button type="warning" */
+/* ✅ warning 风格按钮（可扩展） */
 .native-btn.warning {
-  color: #fff;
-  background-color: #e6a23c;
-  border-color: #e6a23c;
+  color: var(--el-button-text-color, #fff);
+  background-color: var(--el-color-warning);
+  border-color: var(--el-color-warning);
 }
 .native-btn.warning:hover {
-  background-color: #ebb563;
-  border-color: #ebb563;
+  background-color: var(--el-color-warning-light);
+  border-color: var(--el-color-warning-light);
 }
 
-/* ✅ primary 风格（若有） */
-.native-btn.primary {
-  color: #fff;
-  background-color: #409eff;
-  border-color: #409eff;
-}
-.native-btn.primary:hover {
-  background-color: #66b1ff;
-  border-color: #66b1ff;
-}
-
-.action-button-bar {
-  margin-top: 24px;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 16px;
+/* ✅ 加载提示适配字体颜色 */
+.loading-tip {
+  color: var(--el-text-color-secondary);
 }
 </style>
+

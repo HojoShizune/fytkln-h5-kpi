@@ -188,28 +188,30 @@ function handleConfirmExport() {
 }
 </script>
 
-<style scoped>
+<style>
 .score-summary-page {
   padding: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: white;
+  background-color: var(--el-bg-color); /* ✅ 支持暗黑 */
+  color: var(--el-text-color-primary);   /* ✅ 字体颜色 */
 }
 
 .page-title {
   font-size: 20px;
   font-weight: bold;
   margin-bottom: 16px;
+  color: var(--el-text-color-primary);   /* ✅ 字体颜色适配 */
 }
 
 .preview-table-wrapper {
   margin-top: 32px;
   width: 100%;
   max-width: 1000px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color); /* ✅ 替换亮灰 */
   padding: 24px;
-  background-color: white;
+  background-color: var(--el-bg-color);     /* ✅ 背景适配 */
 }
 
 .scrollable-table {
@@ -223,26 +225,29 @@ function handleConfirmExport() {
   border-collapse: collapse;
   text-align: center;
   font-size: 14px;
+  background-color: var(--el-bg-color);     /* ✅ 表格背景 */
+  color: var(--el-text-color-primary);      /* ✅ 表格文字色 */
 }
 
 .preview-table th,
 .preview-table td {
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color); /* ✅ 表格边框色 */
   padding: 6px 10px;
 }
 
 .loading-tip {
   text-align: center;
   margin: 12px 0;
-  color: #909399;
+  color: var(--el-text-color-secondary);    /* ✅ 提示色适配 */
 }
 
-/* ✅ 打印区域样式（适配 A4 页面） */
+/* ✅ 打印区域（保持亮色用于 PDF，不动） */
 .print-area {
   max-width: 180mm;
   margin: 0 auto;
   padding: 16px;
   background: white;
+  color: black;
 }
 
 .print-title {
@@ -263,6 +268,8 @@ function handleConfirmExport() {
 .print-table td {
   border: 1px solid #dcdfe6;
   padding: 4px 6px;
+  color: black;
+  background-color: white;
 }
 
 .print-table tr,
@@ -274,6 +281,7 @@ function handleConfirmExport() {
 .summary-section {
   font-size: 14px;
   margin-top: 12px;
+  color: var(--el-text-color-primary); /* ✅ 文字色适配 */
 }
 
 .avg-row {
@@ -285,7 +293,7 @@ function handleConfirmExport() {
   display: flex;
   justify-content: space-between;
   padding-top: 15px;
-  border-top: 1px dashed #ccc;
+  border-top: 1px dashed var(--el-border-color); /* ✅ 替换虚线颜色 */
 }
 
 /* ✅ 导出按钮区域 */
@@ -295,3 +303,4 @@ function handleConfirmExport() {
   justify-content: center;
 }
 </style>
+

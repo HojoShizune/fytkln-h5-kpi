@@ -3,7 +3,12 @@
     <el-header class="top-bar">
       <div class="logo">🧭 KPI 考核管理系统</div>
       <div class="header-right">
-        <UserDropdown /><!--用户信息组件-->
+        <el-switch
+          v-model="darkMode"
+          active-text="🌙 暗黑模式"
+          inactive-text="☀️ 明亮模式"
+        />
+        <UserDropdown />
       </div>
     </el-header>
 
@@ -11,8 +16,10 @@
       <el-aside width="200px" class="side-menu">
         <el-menu router :default-active="route.path">
           <template v-for="item in menuRoutes" :key="item.fullPath || item.path">
-            <!-- ✅一级菜单 -->
-            <el-sub-menu v-if="item.children?.length" :index="item.fullPath || item.path">
+            <el-sub-menu
+              v-if="item.children?.length"
+              :index="item.fullPath || item.path"
+            >
               <template #title>
                 <el-icon>
                   <component :is="iconMap[item.meta?.icon] || DefaultIcon" />
@@ -20,17 +27,22 @@
                 <span>{{ item.meta?.title }}</span>
               </template>
 
-              <!-- ✅递归渲染子菜单 -->
               <template v-for="child in item.children" :key="child.fullPath || child.path">
-                <el-sub-menu v-if="child.children?.length" :index="child.fullPath || child.path">
+                <el-sub-menu
+                  v-if="child.children?.length"
+                  :index="child.fullPath || child.path"
+                >
                   <template #title>
                     <el-icon>
                       <component :is="iconMap[child.meta?.icon] || DefaultIcon" />
                     </el-icon>
                     <span>{{ child.meta?.title }}</span>
                   </template>
-                  <!-- 继续递归... -->
-                  <template v-for="grand in child.children" :key="grand.fullPath || grand.path">
+
+                  <template
+                    v-for="grand in child.children"
+                    :key="grand.fullPath || grand.path"
+                  >
                     <el-menu-item :index="grand.fullPath || grand.path">
                       <el-icon>
                         <component :is="iconMap[grand.meta?.icon] || DefaultIcon" />
@@ -67,45 +79,59 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { HomeFilled,
-         Document,
-         Edit,
-         DocumentChecked,
-         Management,
-         UserFilled,
-         OfficeBuilding,
-         Histogram,
-         Memo,
-         DataLine,
-         EditPen,
-         Notebook,
-         Tools,
-         TrendCharts,
-         Opportunity,
-         DataBoard,
-         Calendar,
-         Lock 
-       } from '@element-plus/icons-vue'
+import {
+  HomeFilled,
+  Document,
+  Edit,
+  DocumentChecked,
+  Management,
+  UserFilled,
+  OfficeBuilding,
+  Histogram,
+  Memo,
+  DataLine,
+  EditPen,
+  Notebook,
+  Tools,
+  TrendCharts,
+  Opportunity,
+  DataBoard,
+  Calendar,
+  Lock
+} from '@element-plus/icons-vue'
 import { QuestionFilled as DefaultIcon } from '@element-plus/icons-vue'
 import { useUserStore } from '../store/user'
+import { useThemeStore } from '../store/theme'
 import UserDropdown from '../components/UserDropdown.vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 
-// 当前登录角色（admin / user）
 const currentRole = computed(() => userStore.roleId)
+
+// 🧠 响应式处理暗黑模式按钮
+const darkMode = computed({
+  get: () => themeStore.isDark,
+  set: (val) => {
+    themeStore.isDark = val
+    themeStore.toggleDarkMode()
+  }
+})
+
+
+
 
 const layoutRoute = router.options.routes.find(
   r =>
     r.component?.name === 'HomeLayout' ||
-    (typeof r.component === 'function' && r.component.toString().includes('HomeLayout'))
+    (typeof r.component === 'function' &&
+      r.component.toString().includes('HomeLayout'))
 )
 
-// 提取可见菜单（角色判断 + 显示标题 + 非 hidden）
 const extractMenuTree = (routes = [], parentPath = '') =>
   routes
     .filter(route => {
@@ -149,34 +175,43 @@ const iconMap = {
 }
 </script>
 
-<style scoped>
+<style>
 .layout-container {
   height: 100vh;
 }
+
+/* ✅ 顶部导航栏 */
 .top-bar {
-  background-color: #3f77ff;
-  color: white;
+  background-color: var(--el-color-primary);
+  color: var(--el-text-color-regular);
   display: flex;
   align-items: center;
-  justify-content: space-between; /* ✅ 推开左右区域 */
+  justify-content: space-between;
   padding: 0 20px;
   font-size: 20px;
   font-weight: bold;
 }
 
+/* ✅ 顶部右侧区域（切换+用户） */
 .header-right {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
+/* ✅ 侧边栏 */
 .side-menu {
-  background-color: #f9f9f9;
-  border-right: 1px solid #ddd;
+  background-color: var(--el-bg-color-page);
+  border-right: 1px solid var(--el-border-color-light);
 }
+
+/* ✅ 主区域内容 */
 .main-content {
   padding: 24px;
-  background-color: #f5f7fa;
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
 }
+
 .logo {
   display: flex;
   align-items: center;
