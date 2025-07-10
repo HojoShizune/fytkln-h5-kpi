@@ -85,7 +85,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="考核部门" prop="scoringDept" :min-width="140" />
+        <el-table-column label="打分部门" prop="scoringDept" :min-width="140" />
 
         <el-table-column label="备注" :min-width="140">
           <template #default="scope">
@@ -141,7 +141,7 @@
               {{ localScoreMap[getRowKey(scope.row, scope.$index)] ?? '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="scoringDept" label="考核部门" />
+          <el-table-column prop="scoringDept" label="打分部门" />
         </el-table>
         <p v-if="!confirmDialog.success" style="color: #e6a23c;">
           共 {{ confirmDialog.items.length }} 项未核查，无法提交。
@@ -193,7 +193,7 @@ const userStore = useUserStore()
 
 const deptId = route.params.deptId
 const deptName = ref('')
-const currentMonth = dayjs().format('YYYY年MM月')
+const currentMonth = dayjs().subtract(1, 'month').format('YYYY年MM月')
 const isAuditAllowed = computed(() => [1, 2].includes(userStore.roleId))
 
 

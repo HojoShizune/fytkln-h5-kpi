@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import { fetchSurveyRecords, getCurrentMonth, submitSurveyCheck, exportSurveyExcel } from '../api/record'
 import { parseQuestions, parseAnswers } from '../utils/survey-helpers'
@@ -71,7 +71,7 @@ import UnfilledUsersTag from '../components/UnfilledUsersTag.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { saveAs } from 'file-saver'
 
-const period = ref(null)
+const period = ref(dayjs().subtract(1, 'month').format('YYYY-MM'))
 const loading = ref(false)
 const error = ref('')
 const allRecords = ref([])
@@ -79,6 +79,10 @@ const activeSurveyId = ref(null)
 const activeSurvey = ref(null)
 const questionList = ref([])
 const resultList = ref([])
+
+onMounted(() => {
+  onPeriodChange(period.value)
+})
 
 async function onPeriodChange(val) {
   if (!val) return

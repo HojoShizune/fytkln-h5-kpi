@@ -1,26 +1,31 @@
 // src/api/record.js
 import request from './request'
-
+import dayjs from 'dayjs'
 
 // 获取问卷数据（根据账期决定请求哪个接口）
 export const fetchSurveyRecords = async (period) => {
   try {
     let response
-    if (period === getCurrentMonth()) {
+
+    const currentMonth = dayjs().startOf('month')        // 当前月起始
+    const selectedMonth = dayjs(period).startOf('month') // 用户选择账期
+
+    const isPreviousMonth = selectedMonth.isSame(currentMonth.subtract(1, 'month'), 'month')
+    const isEarlier = selectedMonth.isBefore(currentMonth.subtract(1, 'month'), 'month')
+
+    if (isPreviousMonth) {
       response = await request.get('/record/allgradeinfo')
-    } else {
+    } else if (isEarlier) {
       response = await request.get('/record/list', { params: { date: period } })
-    }
-
-    console.log('接口返回完整数据:', response.data) // 打印完整数据！！！
-
-    if (!response.data) {
-      console.warn('⚠️ response.data 为空！！！')
+    } else {
+      console.warn('⚠️ 选择了当前月或未来时间')
       return []
     }
 
-    if (!Array.isArray(response.data)) {
-      console.warn('⚠️ response.data 不是数组，返回空数组！！！')
+    console.log('接口返回完整数据:', response.data)
+
+    if (!response.data || !Array.isArray(response.data)) {
+      console.warn('⚠️ 接口返回非数组，返回空结果！')
       return []
     }
 
@@ -29,7 +34,7 @@ export const fetchSurveyRecords = async (period) => {
     return response.data
   } catch (error) {
     console.error('❌ 获取问卷数据失败:', error)
-    return [] // 失败时返回空数组，避免 undefined
+    return []
   }
 }
 

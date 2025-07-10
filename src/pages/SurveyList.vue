@@ -1,12 +1,18 @@
 <template>
   <div class="survey-list">
     <h2>可填写的问卷列表</h2>
+    <el-alert
+      type="info"
+      show-icon
+      class="alert-bar"
+      :closable="false"
+      title="本月已填写过的问卷，其按钮为灰色且无法点击"
+  />
     <el-table :data="surveyList" border style="margin-top: 16px;">
       <el-table-column prop="title" label="标题" />
-      <el-table-column prop="createdAt" label="创建时间" width="180" />
       <el-table-column label="操作" width="120">
         <template #default="{ row }">
-          <el-button type="primary" size="small" @click="goTo(row.id)">填写</el-button>
+          <el-button :disabled="filledSurveyIds.includes(row.id)" type="primary" size="small" @click="goTo(row.id)">填写</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -82,4 +88,12 @@ const goTo = (surveyId) => {
   margin: auto;
   padding: 24px;
 }
+
+:deep(.el-button.is-disabled) {
+  background-color: #dcdcdc !important;
+  border-color: #dcdcdc !important;
+  color: #888 !important;
+  cursor: not-allowed;
+}
+
 </style>

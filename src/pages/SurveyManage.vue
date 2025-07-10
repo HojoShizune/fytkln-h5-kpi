@@ -84,7 +84,7 @@ import {
   getSurveyList,
   deleteSurvey as apiDelete
 } from '../api/survey'
-import CreateSurveyDialog from '../components/CreateSurveyDialog.vue'
+import CreateSurveyDialog from '../components/CreateSingleSurveyDialog.vue'
 
 const router     = useRouter()
 const showCreate = ref(false)

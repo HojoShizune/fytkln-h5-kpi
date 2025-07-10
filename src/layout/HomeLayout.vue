@@ -215,5 +215,6 @@ const iconMap = {
 .logo {
   display: flex;
   align-items: center;
+  color: #fff;
 }
 </style>

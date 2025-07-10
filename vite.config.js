@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/kpi': {
-        target: 'http://192.168.1.199:8080',
+        target: 'http://192.168.1.200:8080',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/kpi/, ''),
         configure: (proxy) => {

@@ -46,7 +46,7 @@
       <!-- 打分部门列 -->
       <el-table-column
         prop="deptName"
-        label="考核部门"
+        label="打分部门"
         sortable
         :filters="deptFilters"
         :filter-method="filterHandler"

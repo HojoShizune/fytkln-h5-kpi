@@ -26,7 +26,7 @@ const routes = [
       },
       {
         path: 'survey',
-        meta: { title: '问卷', icon: 'Document', roles: [1, 3] },
+        meta: { title: '问卷', icon: 'Document', roles: [3] },
         children: [
           {
             path: '',

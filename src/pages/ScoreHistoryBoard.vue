@@ -108,8 +108,8 @@ import { fetchHistorySummary } from '../api/score'
 const router = useRouter()
 
 // ✅ 页面标题与状态
-const selectedPeriod = ref(dayjs().format('YYYY-MM'))
-const title = ref(`${selectedPeriod.value}部门绩效考核得分汇总表`)
+const selectedPeriod = ref(dayjs().subtract(1, 'month').format('YYYY-MM'))
+const title = ref(`${dayjs(selectedPeriod.value).format('YYYY年MM月')}部门绩效考核得分汇总表`)
 const tableData = ref([])
 const loading = ref(false)
 const exportDialogVisible = ref(false)
@@ -131,7 +131,7 @@ onMounted(() => {
 
 function handlePeriodChange(val) {
   selectedPeriod.value = val
-  title.value = `${val}部门绩效考核得分汇总表`
+  title.value = `${dayjs(val).format('YYYY年MM月')}部门绩效考核得分汇总表`
   fetchTableData()
 }
 

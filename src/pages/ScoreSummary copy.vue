@@ -72,7 +72,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="考核部门" prop="scoringDept" :min-width="140" />
+        <el-table-column label="打分部门" prop="scoringDept" :min-width="140" />
 
         <el-table-column label="备注" :min-width="140">
           <template #default="scope">
@@ -127,7 +127,7 @@
               {{ localScoreMap[getRowKey(scope.row, scope.$index)] ?? '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="scoringDept" label="考核部门" />
+          <el-table-column prop="scoringDept" label="打分部门" />
         </el-table>
         <p v-if="!confirmDialog.success" style="color: #e6a23c;">
           共 {{ confirmDialog.items.length }} 项未核查，无法提交。
@@ -170,7 +170,7 @@
                 <th>分值</th>
                 <th>浮动上限</th>
                 <th>初始得分</th>
-                <th>考核部门</th>
+                <th>打分部门</th>
                 <th>备注</th>
                 <th>数据核查</th>
               </tr>

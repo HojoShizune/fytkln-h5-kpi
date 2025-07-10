@@ -1,7 +1,7 @@
 <template>
   <div class="score-board-page">
     <div class="page-title">
-      <h2>{{ deptName }} - {{ selectedPeriod }} 指标打分明细</h2>
+      <h2>指标打分明细 ({{ deptName }},{{ selectedPeriod }}) </h2>
       <el-button type="default" size="small" @click="goBack">🔙 返回汇总页</el-button>
     </div>
 

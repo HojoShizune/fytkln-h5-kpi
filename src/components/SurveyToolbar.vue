@@ -25,7 +25,7 @@
       />
     </el-select>
 
-    <el-button v-if="isCurrentPeriod" type="primary" :loading="loading" @click="emit('compute')">
+    <el-button v-if="isPreviousMonth" type="primary" :loading="loading" @click="emit('compute')">
       一键核算
     </el-button>
   </div>
@@ -35,9 +35,12 @@
 import { ref, watch, computed } from 'vue'
 import dayjs from 'dayjs'
 
-const isCurrentPeriod = computed(() => {
-  return localPeriod.value === dayjs().format('YYYY-MM')
+const isPreviousMonth = computed(() => {
+  const current = dayjs().startOf('month')
+  const selected = dayjs(localPeriod.value).startOf('month')
+  return selected.isSame(current.subtract(1, 'month'), 'month')
 })
+
 
 const props = defineProps({
   period: String,
@@ -50,8 +53,16 @@ const emit = defineEmits(['update:period', 'update:activeSurveyId', 'compute'])
 const localPeriod = ref(props.period)
 const localSurveyId = ref(props.activeSurveyId)
 
-watch(() => props.period, val => localPeriod.value = val)
-watch(() => props.activeSurveyId, val => localSurveyId.value = val)
+watch(() => props.period, val => {
+  localPeriod.value = val
+  localSurveyId.value = null //  清除下拉回显
+  emit('update:activeSurveyId', null) //  通知父组件同步清除
+})
+
+watch(() => props.activeSurveyId, val => {
+  localSurveyId.value = val
+})
+
 </script>
 
 <style scoped>

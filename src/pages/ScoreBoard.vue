@@ -164,7 +164,7 @@ import RemotePdfViewer from '../components/RemotePdfViewer.vue'
 import { useUserStore } from '../store/user'
 
 // ✅ 页面标题
-const title = `${dayjs().format('YYYY年MM月')}部门绩效考核得分汇总表`
+const title = `${dayjs().subtract(1, 'month').format('YYYY年MM月')}部门绩效考核得分汇总表`
 
 // ✅ 响应式变量
 const tableData = ref([])
