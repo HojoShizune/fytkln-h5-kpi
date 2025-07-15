@@ -146,7 +146,7 @@ function handleConfirmExport() {
 <style scoped>
 .score-board-page {
   padding: 24px;
-}
+}  
 
 .page-title {
   display: flex;
