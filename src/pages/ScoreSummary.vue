@@ -34,10 +34,10 @@
         size="small"
         @click="handleCheckAll"
       >
-        一键核查
+        核查提交
       </el-button>
 
-      <el-button type="warning" size="small" @click="submitScoreDialog.visible = true">
+      <el-button v-if="userStore.roleId !== 2" type="warning" size="small" @click="submitScoreDialog.visible = true">
         提交得分和备注
       </el-button>
     </div>
@@ -136,15 +136,19 @@
           style="width: 100%; margin-bottom: 12px;"
         >
           <el-table-column prop="targetName" label="考核项" />
-          <el-table-column v-if="confirmDialog.success" label="初始得分">
-            <template #default="scope">
+          <el-table-column v-if="confirmDialog.success" prop="originScore" label="初始得分">
+            <!-- <template #default="scope">
               {{ localScoreMap[getRowKey(scope.row, scope.$index)] ?? '-' }}
-            </template>
+            </template> -->
           </el-table-column>
+          
           <el-table-column prop="scoringDept" label="打分部门" />
         </el-table>
-        <p v-if="!confirmDialog.success" style="color: #e6a23c;">
-          共 {{ confirmDialog.items.length }} 项未核查，无法提交。
+        <p v-if="confirmDialog.success" style="color: #67c23a;">
+          以下已勾选项将提交核查：
+        </p>
+        <p v-else style="color: #e6a23c;">
+           请至少选择一个核查项。
         </p>
       </el-scrollbar>
       <template #footer>
@@ -284,12 +288,22 @@ const confirmDialog = ref({
 })
 
 function handleCheckAll() {
-  const unchecked = tableData.value.filter(item => item.isChecked !== 1)
-  const checked = tableData.value.filter(item => item.isChecked === 1)
-  confirmDialog.value.success = unchecked.length === 0
-  confirmDialog.value.items = confirmDialog.value.success ? checked : unchecked
+  const checkedWithScore = tableData.value.filter((item, idx) => {
+    const key = getRowKey(item, idx)
+    const score = parseFloat(localScoreMap.value[key])
+    return item.isChecked === 1 && !isNaN(score)
+  })
+
+  if (checkedWithScore.length === 0) {
+    ElMessage.warning('请至少勾选一个已填写分数的考核项')
+    return
+  }
+
+  confirmDialog.value.success = true
+  confirmDialog.value.items = checkedWithScore
   confirmDialog.value.visible = true
 }
+
 
 async function submitModifiedScores() {
   const payload = tableData.value.map((row, idx) => {
@@ -301,11 +315,13 @@ async function submitModifiedScores() {
       remark: row.remark ?? ''
     }
   })
+  console.log('12121212121',localScoreMap)
 
   try {
     await updateAssessmentScore(payload)
     ElMessage.success('✅ 初始得分已成功提交')
     submitScoreDialog.value.visible = false
+    router.back()
   } catch (err) {
     console.error('❌ 初始得分提交失败:', err)
     ElMessage.error('提交失败，请稍后再试')
@@ -323,6 +339,7 @@ async function confirmSuccess() {
     await updateAssessmentCheck(payload)
     ElMessage.success('✅ 核查状态已成功提交')
     confirmDialog.value.visible = false
+    router.back()
   } catch (err) {
     console.error('❌ 核查提交失败:', err)
     ElMessage.error('提交失败，请稍后重试')
