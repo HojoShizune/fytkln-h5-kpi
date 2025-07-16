@@ -2,10 +2,10 @@
   <el-dialog v-model="visible" title="注册用户" width="500px" @close="resetForm">
     <el-form :model="form" :rules="rules" ref="formRef" label-width="80px">
       <el-form-item prop="username" label="用户姓名">
-        <el-input v-model="form.username" />
+        <el-input v-model="form.name" />
       </el-form-item>
       <el-form-item prop="name" label="账号">
-        <el-input v-model="form.name" />
+        <el-input v-model="form.username" />
       </el-form-item>
       <el-form-item prop="tel" label="手机号">
         <el-input v-model="form.tel" />

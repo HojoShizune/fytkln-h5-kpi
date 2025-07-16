@@ -16,7 +16,7 @@
             <tbody>
               <tr v-for="row in tableData" :key="row.deptId">
                 <td>
-                  <el-link type="primary" @click="goToDeptScore(row.deptId)">
+                  <el-link type="primary" :underline="true" class="always-blue-link" @click="goToDeptScore(row.deptId)">
                     {{ row.deptName }}
                   </el-link>
                 </td>
@@ -521,6 +521,13 @@ async function confirmRenew() {
 /* ✅ 加载提示适配字体颜色 */
 .loading-tip {
   color: var(--el-text-color-secondary);
+}
+
+.always-blue-link {
+  color: var(--el-color-primary) !important;
+}
+.always-blue-link:hover {
+  color: var(--el-color-primary) !important;
 }
 </style>
 
