@@ -81,29 +81,6 @@ npm run lint
 
 ---
 
-### 🧠 后端接口说明（待接入）
-
-- 创建问卷：`POST /api/surveys`
-- 获取问卷列表：`GET /api/surveys`
-- 查询填写结果：`GET /api/surveys/:id/results`
-- 用户注册/登录：`POST /api/users/register`、`/login`
-> 当前项目暂使用前端模拟数据，后续可通过 Axios 接入后端服务。
-
----
-
-### 🔐 权限说明
-
-- `roleId = 1` 表示管理员，可访问：
-  - 问卷设计 / 管理 / 结果查看 / 用户管理页
-- `roleId = 0` 表示普通用户，仅可填写问卷
-
----
-
-### 📸 页面预览（可选）
-
-> 添加项目截图或演示链接
-
----
 
 ### 📄 License
 
