@@ -104,7 +104,7 @@
         导出 PDF
       </el-button>
     </div>
-    
+
     <!-- ✅ 模板弹窗 -->
     <el-dialog v-model="templateDialogVisible" title="打分模板操作" width="420px">
       <div class="button-group">
@@ -201,7 +201,7 @@ const excelDialogVisible = ref(false)
 const dialogCalculateVisible = ref(false)
 const dialogRenewVisible = ref(false)
 
-const isLeader = computed(() => userStore.roleId === 1 || userStore.roleId === 2)
+const isLeader = computed(() => Number(userStore.roleId) === 1 || Number(userStore.roleId) === 2)
 
 // ✅ 表格列定义
 const allColumnDefs = [

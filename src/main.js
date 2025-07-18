@@ -13,12 +13,8 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import { useUserStore } from './store/user'
 //import './assets/theme-vars.css'// //Element Plus 的组件暗黑模式适配(有大问题，弃用)//
 
-
-
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
-
-
 
 const app = createApp(App)
 app.use(pinia)

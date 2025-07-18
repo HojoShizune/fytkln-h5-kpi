@@ -198,7 +198,7 @@ const userStore = useUserStore()
 const deptId = route.params.deptId
 const deptName = ref('')
 const currentMonth = dayjs().subtract(1, 'month').format('YYYY年MM月')
-const isAuditAllowed = computed(() => [1, 2].includes(userStore.roleId))
+const isAuditAllowed = computed(() => [1, 2].includes(Number(userStore.roleId)))
 
 
 
