@@ -37,7 +37,7 @@ const onLogin = async () => {
   loading.value = true
 
   try {
-    // ✅ 登录接口（返回 token）
+    // 1. 登录接口（返回 token）
     const res = await login({
       username: form.username,
       password: form.password
@@ -49,10 +49,15 @@ const onLogin = async () => {
     }
 
     const token = res.data
-    localStorage.setItem('token', token)
-    userStore.token = token // ✅ Pinia 中存储 token
 
-    // ✅ 获取角色信息（通过 token）
+    // 2. 先写入 Pinia 和 sessionStorage
+    userStore.login({
+      username: form.username,
+      token,
+      roleId: '' // 先占位，后面再更新
+    })
+
+    // 3. 再请求角色信息
     const roleRes = await getRoleByToken()
     const { roleId, roleName } = roleRes.data || {}
 
@@ -61,7 +66,7 @@ const onLogin = async () => {
       return
     }
 
-    // ✅ 完整存入 Pinia 状态
+    // 4. 再次写入完整信息
     userStore.login({
       username: roleName || form.username,
       token,
@@ -71,7 +76,7 @@ const onLogin = async () => {
     ElMessage.success(`欢迎 ${roleName || form.username} 登录成功 🎉`)
     router.push('/home')
   } catch (err) {
-
+    // 错误处理
   } finally {
     loading.value = false
   }

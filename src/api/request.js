@@ -15,7 +15,7 @@ const service = axios.create({
 // ✅ 请求拦截器：附加 token
 service.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     if (token) {
       config.headers['Authorization'] = `${token}`
     }
@@ -49,9 +49,13 @@ service.interceptors.response.use(
     console.log('a',router)
 
     if (status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      location.reload() 
+      ElMessage.error('用户信息过期，请重新登录')
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('username')
+      sessionStorage.removeItem('roleId')
+      setTimeout(() => {
+        location.reload()// 回退页面
+      }, 3000)
       return Promise.reject(new Error('请重新登录'))
     }
 

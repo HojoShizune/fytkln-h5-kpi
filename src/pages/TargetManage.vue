@@ -9,11 +9,15 @@
         导入/下载考核项模板
     </el-button>
 
-
     <div style="margin-top: 12px; display: flex; align-items: center; color: #999; font-size: 13px;">
       <el-icon><InfoFilled /></el-icon>
       <el-text>
-        排序和筛选仅作用于当前分页数据，不支持跨页或全文搜索。
+        此页面展示和管理当前年份的考核项。
+      </el-text>
+    </div>
+    <div style="margin-top: 12px; display: flex; align-items: center; color: #999; font-size: 13px;">
+      <el-text>
+        &nbsp&nbsp&nbsp&nbsp排序和筛选仅作用于当前分页数据，不支持跨页或全文搜索。
       </el-text>
     </div>
 

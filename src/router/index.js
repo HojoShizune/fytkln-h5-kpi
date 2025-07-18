@@ -129,7 +129,7 @@ router.beforeEach((to, from, next) => {
     next('/login')
   } else if (to.path === '/login' && isLoggedIn) {
     next('/home')
-  } else if (to.meta.roles && !to.meta.roles.includes(userStore.roleId)) {
+  } else if (to.meta.roles && !to.meta.roles.includes(Number(userStore.roleId))) {
     ElMessage.warning('无权限访问')
     next('/home')
   } else {

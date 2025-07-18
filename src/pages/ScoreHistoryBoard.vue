@@ -29,6 +29,7 @@
                 </td>
                 <td>{{ row.originScore }}</td>
                 <td>{{ row.coeffient }}</td>
+                <td>{{ isNaN(Number(row.leaderScore)) ? '0.00' : Number(row.leaderScore).toFixed(2) }}</td>
                 <td>{{ row.finalScore }}</td>
                 <td>
                   <el-checkbox :model-value="row.isChecked === 1" disabled />
@@ -71,6 +72,7 @@
                 <td>{{ row.deptName }}</td>
                 <td>{{ row.originScore }}</td>
                 <td>{{ row.coeffient }}</td>
+                <td>{{ isNaN(Number(row.leaderScore)) ? '0.00' : Number(row.leaderScore).toFixed(2) }}</td>
                 <td>{{ row.finalScore }}</td>
                 <td>{{ row.isChecked === 1 ? '✅ 已核查' : '❗ 未核查' }}</td>
               </tr>
@@ -120,6 +122,7 @@ const columnDefs = [
   { prop: 'deptName', label: '部门名称' },
   { prop: 'originScore', label: '起始分值' },
   { prop: 'coeffient', label: '浮动系数' },
+  { prop: 'leaderScore', label: '领导加减分' },
   { prop: 'finalScore', label: '最终得分' },
   { prop: 'isChecked', label: '数据核查' }
 ]

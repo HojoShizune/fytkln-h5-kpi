@@ -1,4 +1,6 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import App from './App.vue'
 import router from './router'
 
@@ -12,8 +14,6 @@ import { useUserStore } from './store/user'
 //import './assets/theme-vars.css'// //Element Plus 的组件暗黑模式适配(有大问题，弃用)//
 
 
-import { createPinia } from 'pinia'
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
@@ -29,10 +29,6 @@ console.log(router.currentRoute.value)
 
 app.mount('#app')
 
-window.addEventListener('beforeunload', () => {
-  const userStore = useUserStore()
-  userStore.logout()
-})
 
 Object.entries(ElIcons).forEach(([key, component]) => {
   app.component(key, component)

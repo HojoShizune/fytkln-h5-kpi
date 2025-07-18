@@ -3,7 +3,8 @@ import request from './request'
 
 // 获取部门列表
 export const getTargetList = (params = {}) => {
-  return request.get('/target/list', { params })
+  const year = params.year || new Date().getFullYear().toString()
+  return request.get('/target/list', { params: { ...params, year } })
 }
 
 

@@ -2,6 +2,24 @@
   <div class="score-summary-page">
     <h2 class="page-title">{{ title }}</h2>
 
+    <div class="export-button-bar-top">
+      <!-- 🔒 KPI人员不可见（roleId != 4）且不是问卷员 -->
+      <el-button
+        v-if="userStore.roleId !== 4 && userStore.roleId !== 3"
+        type="warning"
+        @click="handleCalculate"
+     >
+        纪检考核项计算
+      </el-button>
+      <el-button
+        v-if="isLeader"
+        type="primary"
+        @click="submitLeaderScore"
+      >
+        提交领导打分
+      </el-button>
+    </div>
+
     <!-- ✅ 表格区域 -->
     <div class="preview-table-wrapper">
       <div class="scrollable-table">
@@ -22,6 +40,16 @@
                 </td>
                 <td>{{ row.originScore }}</td>
                 <td>{{ row.coeffient }}</td>
+                <td v-if="isLeader">
+                  <el-input
+                    v-model="row.leaderScore"
+                    size="small"
+                    style="width: 90px"
+                    :disabled="!isLeader"
+                    @input="val => handleLeaderScoreInput(row, val)"
+                    placeholder="0.00"
+                  />
+                </td>
                 <td>{{ row.finalScore }}</td>
                 <td>
                   <el-checkbox :model-value="row.isChecked === 1" disabled />
@@ -61,16 +89,6 @@
       >
         下载 EXCEL
       </el-button>
-
-      <!-- 🔒 KPI人员不可见（roleId != 4）且不是问卷员 -->
-      <el-button
-        v-if="userStore.roleId !== 4 && userStore.roleId !== 3"
-        type="warning"
-        @click="handleCalculate"
-     >
-        纪检考核项计算
-      </el-button>
-
       <el-button
         v-if="userStore.roleId !== 4 && userStore.roleId !== 3"
         type="primary"
@@ -78,7 +96,6 @@
       >
         数据提交
       </el-button>
-
       <el-button
         v-if="userStore.roleId !== 4 && userStore.roleId !== 3"
         type="primary"
@@ -87,8 +104,7 @@
         导出 PDF
       </el-button>
     </div>
-
-
+    
     <!-- ✅ 模板弹窗 -->
     <el-dialog v-model="templateDialogVisible" title="打分模板操作" width="420px">
       <div class="button-group">
@@ -158,7 +174,8 @@ import {
   downloadScoreSummaryFile,
   calculateAssessment,
   renewAssessment,
-  fetchAssessmentList
+  fetchAssessmentList,
+  submitLeaderScoreApi
 } from '../api/score'
 import RemotePdfViewer from '../components/RemotePdfViewer.vue' 
 import { useUserStore } from '../store/user'
@@ -173,6 +190,7 @@ const uploadInput = ref(null)
 const loading = ref(false)
 const userStore = useUserStore()
 
+
 const assessmentMap = ref({})
 const remotePdfRef = ref(null)
 
@@ -183,14 +201,24 @@ const excelDialogVisible = ref(false)
 const dialogCalculateVisible = ref(false)
 const dialogRenewVisible = ref(false)
 
+const isLeader = computed(() => userStore.roleId === 1 || userStore.roleId === 2)
+
 // ✅ 表格列定义
-const columnDefs = [
+const allColumnDefs = [
   { prop: 'deptName', label: '部门名称' },
   { prop: 'originScore', label: '起始分值' },
   { prop: 'coeffient', label: '浮动系数' },
+  { prop: 'leaderScore', label: '领导加减分' },
   { prop: 'finalScore', label: '最终得分' },
   { prop: 'isChecked', label: '数据核查' }
 ]
+
+// 只在 isLeader 时显示领导加减分列
+const columnDefs = computed(() =>
+  isLeader.value
+    ? allColumnDefs
+    : allColumnDefs.filter(col => col.prop !== 'leaderScore')
+)
 
 // ✅ 页面加载获取数据
 onMounted(() => {
@@ -237,8 +265,13 @@ async function fetchTableData() {
   loading.value = true
   try {
     const res = await fetchScoreSummary()
-    tableData.value = Array.isArray(res.data.data) ? res.data.data : []
-    await fetchAllDepartmentDetails()
+    // 映射 leaderAdjust 到 leaderScore
+    tableData.value = Array.isArray(res.data.data)
+      ? res.data.data.map(row => ({
+          ...row,
+          leaderScore: row.leaderAdjust ?? '' // 兼容未返回时为空
+        }))
+      : []
   } catch (err) {
     console.error('❌ 获取打分数据失败:', err)
   } finally {
@@ -274,7 +307,9 @@ async function handleFileUpload(event) {
 
     if (res?.code === 0) {
       ElMessage.success(res?.message || '✅ 模板上传成功')
-      fetchTableData()
+      setTimeout(() => {
+        fetchTableData()
+      }, 1000)
     } else {
       console.error('❌ 后端返回错误:', res)
       ElMessage.error(res?.message || '上传失败，请稍后再试')
@@ -386,6 +421,9 @@ async function confirmCalculate() {
   try {
     await calculateAssessment()
     ElMessage.success('✅ 纪检考核项计算成功')
+    setTimeout(() => {
+        fetchTableData()
+    }, 1000)
   } catch (err) {
     console.error('❌ 纪检计算失败:', err)
     ElMessage.error('计算失败，请稍后再试')
@@ -403,6 +441,36 @@ async function confirmRenew() {
   } finally {
     dialogRenewVisible.value = false
     fetchTableData()
+  }
+}
+
+// 领导加减分输入校验，只允许正负浮点数且两位小数
+function handleLeaderScoreInput(row, val) {
+  let v = String(val).replace(/[^-.\d]/g, '') // 只允许数字、负号和小数点
+  // 只允许一个负号且在开头
+  v = v.replace(/(?!^)-/g, '')
+  // 只允许一个小数点
+  v = v.replace(/(\..*)\./g, '$1')
+  // 限制两位小数
+  v = v.replace(/^(-?\d+)(\.\d{0,2}).*$/, '$1$2')
+  row.leaderScore = v
+}
+
+// 提交领导打分
+async function submitLeaderScore() {
+  try {
+    const payload = tableData.value.map(row => ({
+      deptId: row.deptId,
+      leaderAdjust: Number(row.leaderScore) || 0
+    }))
+    //调用后端接口提交领导加减分
+    await submitLeaderScoreApi(payload)
+    ElMessage.success('领导加减分已提交')
+    setTimeout(() => {
+        fetchTableData()
+    }, 1000)
+  } catch (err) {
+    ElMessage.error('提交失败，请稍后再试')
   }
 }
 </script>
@@ -478,6 +546,14 @@ async function confirmRenew() {
   margin-top: 24px;
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.export-button-bar-top {
+  margin-left: 650px;
+  display: flex;
+  justify-content: right;
   flex-wrap: wrap;
   gap: 16px;
 }

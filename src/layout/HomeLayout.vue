@@ -138,7 +138,7 @@ const extractMenuTree = (routes = [], parentPath = '') =>
       const hasTitle = route.meta?.title
       const notHidden = !route.meta?.hidden
       const hasAccess =
-        !route.meta?.roles || route.meta.roles.includes(currentRole.value)
+        !route.meta?.roles || route.meta.roles.includes(Number(currentRole.value))
       return hasTitle && notHidden && hasAccess
     })
     .map(route => {

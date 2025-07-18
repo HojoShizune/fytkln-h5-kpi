@@ -91,3 +91,13 @@ export function downloadCompletePdfFile() {
     skipResponseInterceptor: true
   })
 }
+
+// ✅ 提交领导加减分数据（用于 ScoreBoard.vue）
+export function submitLeaderScoreApi(payload) {
+  return request.post('/assessment/updateLeaderAdjust', payload, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+}
+

@@ -95,7 +95,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="数据核查" :min-width="120">
+        <el-table-column v-if="isAuditAllowed" label="数据核查" :min-width="120">
           <template #default="scope">
             <el-checkbox
               :model-value="scope.row.isChecked === 1"
@@ -294,10 +294,10 @@ function handleCheckAll() {
     return item.isChecked === 1 && !isNaN(score)
   })
 
-  if (checkedWithScore.length === 0) {
+  /*if (checkedWithScore.length === 0) {
     ElMessage.warning('请至少勾选一个已填写分数的考核项')
     return
-  }
+  }*/
 
   confirmDialog.value.success = true
   confirmDialog.value.items = checkedWithScore
