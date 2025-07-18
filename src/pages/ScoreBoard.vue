@@ -50,7 +50,7 @@
         type="primary"
         @click="templateDialogVisible = true"
       >
-        导入/导出打分模板
+        上传/下载打分模板
       </el-button>
 
       <!-- 🔒 问卷评分人员不显示（roleId != 3） -->
@@ -59,7 +59,7 @@
         type="success"
         @click="excelDialogVisible = true"
       >
-        导出 EXCEL
+        下载 EXCEL
       </el-button>
 
       <!-- 🔒 KPI人员不可见（roleId != 4）且不是问卷员 -->
@@ -92,7 +92,7 @@
     <!-- ✅ 模板弹窗 -->
     <el-dialog v-model="templateDialogVisible" title="打分模板操作" width="420px">
       <div class="button-group">
-        <el-button type="primary" @click="triggerFileUpload">📥 导入打分模板</el-button>
+        <el-button type="primary" @click="triggerFileUpload">上传打分模板</el-button>
         <input
           ref="uploadInput"
           type="file"
@@ -101,7 +101,7 @@
           @change="handleFileUpload"
         />
         <el-button type="warning" @click="handleExportTemplate" :loading="loading">
-           导出打分模板
+           下载打分模板
         </el-button>
       </div>
     </el-dialog>
@@ -126,13 +126,13 @@
     </el-dialog>
 
     <!-- ✅ PDF / Excel 导出弹窗 -->
-    <el-dialog v-model="excelDialogVisible" title="导出数据" width="420px">
+    <el-dialog v-model="excelDialogVisible" title="下载 EXCEL" width="420px">
       <div class="button-group">
         <button class="native-btn warning" @click="handleExportDetailExcel">
-           导出所有部门考核明细
+           下载所有部门考核明细
         </button>
         <button class="native-btn success" @click="handleExportSummaryExcel">
-           导出部门得分汇总
+           下载部门得分汇总
         </button>
       </div>
     </el-dialog>
@@ -269,17 +269,25 @@ async function handleFileUpload(event) {
     const formData = new FormData()
     formData.append('file', file)
 
-    await uploadScoreTemplate(formData)
-    ElMessage.success('✅ 模板上传成功')
-    fetchTableData()
+    const response = await uploadScoreTemplate(formData)
+    const res = response?.data
+
+    if (res?.code === 0) {
+      ElMessage.success(res?.message || '✅ 模板上传成功')
+      fetchTableData()
+    } else {
+      console.error('❌ 后端返回错误:', res)
+      ElMessage.error(res?.message || '上传失败，请稍后再试')
+    }
   } catch (err) {
-    console.error('❌ 模板上传失败:', err)
+    console.error('❌ 上传异常:', err)
     ElMessage.error('上传失败，请稍后再试')
   } finally {
     loading.value = false
     uploadInput.value.value = ''
   }
 }
+
 
 // ✅ 模板下载
 async function handleExportTemplate() {

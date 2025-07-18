@@ -1,5 +1,7 @@
 import axios from 'axios'//若上线后可写死正式地址，就注释掉
 import { ElMessage } from 'element-plus'
+import router from '../router/index'
+
 
 const baseApi = `${window.location.origin}${import.meta.env.VITE_APP_BASE_API}`
 
@@ -34,18 +36,29 @@ service.interceptors.response.use(
     }
 
     const res = response.data
-
-    if (res.code !== 0 && res.success !== true) {
-      ElMessage.error(res.message || '请求失败')
-      return Promise.reject(new Error(res.message || 'Error'))
-    }
-
+    if (res.code !== 0) {
+        ElMessage.error(res.message || '请求失败')
+        return Promise.reject(new Error(res.message || 'Error'))
+      }
     return res
   },
   error => {
-    ElMessage.error(error.response?.data?.message || '网络请求异常')
+    const status = error.response?.status
+    const message = error.response?.data?.message || '网络请求异常'
+
+    console.log('a',router)
+
+    if (status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      location.reload() 
+      return Promise.reject(new Error('请重新登录'))
+    }
+
+    ElMessage.error(message)
     return Promise.reject(error)
   }
+
 )
 
 export default service

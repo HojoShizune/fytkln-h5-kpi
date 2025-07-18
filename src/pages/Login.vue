@@ -71,8 +71,7 @@ const onLogin = async () => {
     ElMessage.success(`欢迎 ${roleName || form.username} 登录成功 🎉`)
     router.push('/home')
   } catch (err) {
-    console.error('❌ 登录失败:', err)
-    ElMessage.error(err.message || '登录异常，请稍后再试')
+
   } finally {
     loading.value = false
   }

@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    token: localStorage.getItem('token') || '',
+    token: '', 
     username: '',
     roleId: '', // ✅ 默认普通用户
   }),
@@ -17,12 +17,8 @@ export const useUserStore = defineStore('user', {
     logout() {
       this.$reset()
 
-      localStorage.removeItem('token') 
-      localStorage.removeItem('user') 
-      localStorage.removeItem('roleId') 
+      
     }
   },
-  persist: {
-    paths: ['token', 'username', 'roleId'] // 持久化字段
-  }
+  
 })

@@ -5,11 +5,11 @@
     <div v-loading="loading">
       <el-table :data="deptList" border style="margin-top: 20px">
         <el-table-column prop="deptName" label="部门名称" />
-        <el-table-column label="考核项">
+        <!--<el-table-column label="考核项">
           <template #default="{ row }">
             <TargetListSummary :value="row.targets" :max="3" />
           </template>
-        </el-table-column>
+        </el-table-column>-->
         <el-table-column label="操作" width="200">
           <template #default="{ row }">
             <el-button type="text" @click="editDept(row)">编辑</el-button>
@@ -75,7 +75,8 @@ const fetchTargets = async () => {
     floating: item.floating,
     deptName: item.deptName,
     description: item.description,
-    scoringMethod: item.scoringMethod
+    scoringMethod: item.scoringMethod,
+    year: item.year
   }))
   targetList.value = filtered
 }

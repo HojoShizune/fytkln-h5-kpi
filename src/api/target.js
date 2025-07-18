@@ -27,3 +27,20 @@ export const deleteTarget = (id) => {
 export const getTargetsByDept = (params) => {
   return request.get('/target/findByDept', { params })
 }
+
+// ✅ 批量导入考核项（Excel 文件）
+export const importTargetList = (formData) => {
+  return request.post('/target/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    skipResponseInterceptor: true
+  })
+}
+
+export const exportTargetList = () => {
+  return request.get('/target/export', {
+    responseType: 'blob',
+    skipResponseInterceptor: true
+  })
+}

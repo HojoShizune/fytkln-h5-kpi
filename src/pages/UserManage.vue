@@ -74,7 +74,7 @@ const fetchUsers = async () => {
   } catch (e) {
     console.warn('⚠️ 接口获取失败，使用本地模拟数据')
     users.value = fallbackUsers
-    ElMessage.warning('接口异常，已展示模拟数据')
+   
   }
 }
 

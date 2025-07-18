@@ -2,6 +2,13 @@
   <div>
     <!-- 新增按钮 -->
     <el-button type="primary" @click="openAddDialog">新增考核项</el-button>
+    <el-button
+        type="primary"
+        @click="templateDialogVisible = true"
+      >
+        导入/下载考核项模板
+    </el-button>
+
 
     <div style="margin-top: 12px; display: flex; align-items: center; color: #999; font-size: 13px;">
       <el-icon><InfoFilled /></el-icon>
@@ -20,6 +27,15 @@
         :filters="targetFilters"
         :filter-method="filterHandler"
         filter-multiple="false"
+      />
+      <el-table-column
+        prop="year"
+        label="考核项年份"
+        sortable
+        :filters="yearFilters"
+        :filter-method="filterHandler"
+        filter-multiple="false"
+        :formatter="(_, __, val) => val === '0' ? '' : val"
       />
       <!-- 分值列 -->
       <el-table-column
@@ -141,15 +157,37 @@
         <el-button type="primary" @click="onSubmit">确定</el-button>
       </template>
     </el-dialog>
+    
+    <!-- ✅ 模板弹窗 -->
+    <el-dialog v-model="templateDialogVisible" title="考核项模板操作" width="420px">
+      <div class="button-group">
+        <el-button type="primary" @click="triggerFileUpload">上传考核项模板</el-button>
+        <input
+          ref="uploadInput"
+          type="file"
+          accept=".xlsx,.xls"
+          style="display: none"
+          @change="handleFileUpload"
+        />
+        <el-button type="warning" @click="handleExportTemplate" :loading="loading">
+           下载考核项模板
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getTargetList, addTarget, updateTarget, deleteTarget } from '../api/target'
+import { getTargetList, addTarget, updateTarget, deleteTarget, importTargetList, exportTargetList } from '../api/target'
 import { getDeptList } from '../api/dept'
 import { InfoFilled } from '@element-plus/icons-vue'
+import dayjs from 'dayjs'
+import { saveAs } from 'file-saver'
+
+const templateDialogVisible = ref(false)
+const uploadInput = ref(null)
 
 // 分页状态
 const currentPage = ref(1)
@@ -176,6 +214,11 @@ const form = ref({
 const originalForm = ref(null)
 const isEdit = ref(false)
 const dialogVisible = ref(false)
+
+//上传excel
+const dialogImportVisible = ref(false)
+const selectedFile = ref(null)
+const importing = ref(false)
 
 // 获取考核项列表，传入分页参数和 searchStr
 const fetchTargets = async () => {
@@ -322,6 +365,10 @@ const targetFilters = computed(() => {
   const values = Array.from(new Set(targetList.value.map(item => item.target).filter(v => v != null)))
   return values.map(val => ({ text: val, value: val }))
 })
+const yearFilters = computed(() => {
+  const values = Array.from(new Set(targetList.value.map(item => item.year).filter(v => v != null)))
+  return values.map(val => ({ text: val, value: val }))
+})
 const scoreFilters = computed(() => {
   const values = Array.from(new Set(targetList.value.map(item => item.score)))
   return values.map(val => ({ text: Number(val).toFixed(2), value: val }))
@@ -335,8 +382,67 @@ const deptFilters = computed(() => {
   return values.map(val => ({ text: val, value: val }))
 })
 
+// ✅ 模板上传
+function triggerFileUpload() {
+  uploadInput.value?.click()
+}
+
+async function handleFileUpload(event) {
+  const file = event.target.files[0]
+  if (!file) return
+
+  loading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await importTargetList(formData)
+    const res = response?.data
+
+
+    if (res?.code === 0) {
+      ElMessage.success(res?.message || '✅ 模板上传成功')
+      await fetchTargets()
+    } else {
+      console.error('❌ 后端返回错误:', res)
+      ElMessage.error(res?.message || '上传失败，请稍后再试')
+    }
+  } catch (err) {
+    console.error('❌ 上传异常:', err)
+    ElMessage.error('上传失败，请稍后再试')
+  } finally {
+    loading.value = false
+    uploadInput.value.value = ''
+  }
+}
+
+// ✅ 模板下载
+async function handleExportTemplate() {
+  try {
+    loading.value = true
+    const res = await exportTargetList()
+    saveAs(res.data, `考核项模板_${dayjs().format('YYYYMM')}.xlsx`)
+    ElMessage.success('🎉 模板下载成功！')
+  } catch (err) {
+    console.error('❌ 模板下载失败:', err)
+    ElMessage.error('下载失败，请稍后重试')
+  } finally {
+    loading.value = false
+  }
+}
+
 onMounted(() => {
   fetchDepts()
   fetchTargets()
 })
 </script>
+
+<style>
+.button-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 12px;
+}
+</style>

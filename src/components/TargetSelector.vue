@@ -101,7 +101,7 @@ const removeTarget = (id) => {
                 }"
               >
                 <div style="flex: 1;">
-                  {{ t.name }}（{{ t.score ?? 0 }}分｜浮动{{ t.floating ?? 0 }}｜{{ t.deptName || '—' }}）
+                  {{ t.year === "0" ? t.name : `${t.name}（${t.year}年）` }}｜{{ t.score ?? 0 }}分｜浮动{{ t.floating ?? 0 }}｜{{ t.deptName || '—' }}
                 </div>
                 <div v-if="props.modelValue.includes(String(t.id))" style="color: #4caf50;">✓</div>
               </div>
@@ -130,7 +130,10 @@ const removeTarget = (id) => {
         style="margin: 4px 6px 0 0;"
         @close="removeTarget(id)"
       >
-        {{ targetList.find(t => t.id === id)?.name || `#${id}` }}
+        {{ targetList.find(t => t.id === id)?.year === "0"
+           ? targetList.find(t => t.id === id)?.name
+           : `${targetList.find(t => t.id === id)?.name}（${targetList.find(t => t.id === id)?.year}年）`
+        }}
       </el-tag>
     </div>
   </div>
