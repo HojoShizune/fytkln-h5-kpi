@@ -92,16 +92,16 @@
       <el-button
         v-if="userStore.roleId !== 4 && userStore.roleId !== 3"
         type="primary"
-        @click="handleRenew"
+        @click="openRemotePdf"
       >
-        数据提交
+        导出 PDF
       </el-button>
       <el-button
         v-if="userStore.roleId !== 4 && userStore.roleId !== 3"
         type="primary"
-        @click="openRemotePdf"
+        @click="handleRenew"
       >
-        导出 PDF
+        数据提交
       </el-button>
     </div>
 
