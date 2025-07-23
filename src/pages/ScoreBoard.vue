@@ -122,7 +122,7 @@
       </div>
     </el-dialog>
 
-    <!--  弹窗：纪检考核项计算 -->
+    <!-- 弹窗：纪检考核项计算 -->
     <el-dialog v-model="dialogCalculateVisible" title="提示" width="400px">
       <p>除了派驻纪检组以外，所有部门数据都已核查，是否继续进行纪检考核项计算？</p>
       <template #footer>
